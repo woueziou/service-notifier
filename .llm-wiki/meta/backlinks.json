@@ -1,15 +1,66 @@
 {
-  "concepts/abuse-detection-anti-spam": [],
-  "concepts/api-key-based-authentication": [],
-  "concepts/job-status-tracking": [],
-  "concepts/single-source-of-truth-notification-dispatch": [],
-  "entities/notifier": [],
+  "concepts/abuse-detection-anti-spam": [
+    "concepts/api-key-based-authentication",
+    "concepts/api-key-rotation",
+    "concepts/single-source-of-truth-notification-dispatch",
+    "entities/consumer",
+    "entities/notifier",
+    "sources/SRC-2026-06-06-002"
+  ],
+  "concepts/api-key-based-authentication": [
+    "concepts/api-key-rotation",
+    "concepts/hmac-request-signing",
+    "concepts/single-source-of-truth-notification-dispatch",
+    "entities/consumer",
+    "entities/notifier",
+    "sources/SRC-2026-06-06-002"
+  ],
+  "concepts/api-key-rotation": [
+    "concepts/api-key-based-authentication",
+    "concepts/hmac-request-signing",
+    "concepts/single-source-of-truth-notification-dispatch",
+    "entities/consumer",
+    "entities/notifier",
+    "sources/SRC-2026-06-06-002"
+  ],
+  "concepts/hmac-request-signing": [
+    "concepts/api-key-rotation",
+    "sources/SRC-2026-06-06-002"
+  ],
+  "concepts/job-status-tracking": [
+    "concepts/api-key-rotation",
+    "concepts/single-source-of-truth-notification-dispatch",
+    "entities/consumer",
+    "entities/notifier"
+  ],
+  "concepts/single-source-of-truth-notification-dispatch": [
+    "concepts/api-key-rotation",
+    "entities/notifier"
+  ],
+  "entities/consumer": [],
+  "entities/notifier": [
+    "concepts/api-key-based-authentication",
+    "concepts/api-key-rotation",
+    "concepts/hmac-request-signing",
+    "concepts/single-source-of-truth-notification-dispatch",
+    "entities/consumer",
+    "sources/SRC-2026-06-06-002"
+  ],
   "sources/SRC-2026-06-06-001": [
     "concepts/abuse-detection-anti-spam",
     "concepts/api-key-based-authentication",
+    "concepts/api-key-rotation",
     "concepts/job-status-tracking",
     "concepts/single-source-of-truth-notification-dispatch",
+    "entities/consumer",
     "entities/notifier",
     "sources/SRC-2026-06-06-001"
-  ]
+  ],
+  "sources/SRC-2026-06-06-002": [
+    "concepts/hmac-request-signing",
+    "sources/SRC-2026-06-06-002"
+  ],
+  "sources/obs-2026-06-06-api-key-rotation-concept-added": [],
+  "sources/obs-2026-06-06-hmac-request-signing-implemented": [],
+  "sources/obs-2026-06-06-wiki-cross-linking-improved": []
 }

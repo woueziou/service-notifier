@@ -25,7 +25,8 @@ type CreateConsumerResponse struct {
 	Name        string `json:"name"`
 	EmailPrefix string `json:"email_prefix"`
 	SenderEmail string `json:"sender_email"`
-	APIKey      string `json:"api_key"` // shown once
+	APIKey      string `json:"api_key"`         // shown once
+	HMACSecret  string `json:"hmac_secret,omitempty"` // shown once, empty for existing flow
 }
 
 // --- Error ---

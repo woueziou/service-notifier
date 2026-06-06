@@ -43,6 +43,9 @@ type Config struct {
 	StreamConsumerGroup string `env:"REDIS_CONSUMER_GROUP" envDefault:"notifier-workers"`
 	DLQStreamName     string `env:"REDIS_DLQ_STREAM" envDefault:"email:dlq"`
 	MaxRetries        int    `env:"MAX_RETRIES" envDefault:"3"`
+
+	// HMAC Auth
+	HMACMasterKey string `env:"HMAC_MASTER_KEY" envDefault:""`
 }
 
 func Load() (*Config, error) {

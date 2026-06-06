@@ -9,6 +9,7 @@ import (
 	"sync"
 	"syscall"
 
+	"github.com/flyasky/notifier/internal/auth"
 	"github.com/flyasky/notifier/internal/config"
 	"github.com/flyasky/notifier/internal/engine"
 	"github.com/flyasky/notifier/internal/model"
@@ -97,17 +98,25 @@ func main() {
 		cfg.SMTPFrom,
 	)
 
+	// HMAC secret provider for request signing
+	secretProvider, err := initSecretProvider(cfg.HMACMasterKey)
+	if err != nil {
+		slog.Error("failed to initialize HMAC secret provider", "error", err)
+		os.Exit(1)
+	}
+
 	// Build handlers & router
 	senderDomain := extractDomain(cfg.SMTPFrom)
 	adapter := &server.ConfigAdapter{
-		AdminKey:     cfg.AdminAPIKey,
-		StreamName:   cfg.StreamName,
-		DLQStream:    cfg.DLQStreamName,
-		MaxRetries:   cfg.MaxRetries,
-		SenderDomain: senderDomain,
+		AdminKey:       cfg.AdminAPIKey,
+		StreamName:     cfg.StreamName,
+		DLQStream:      cfg.DLQStreamName,
+		MaxRetries:     cfg.MaxRetries,
+		SenderDomain:   senderDomain,
+		SecretProvider: secretProvider,
 	}
 
-	handlers := server.NewHandlers(db, rdb, adapter)
+	handlers := server.NewHandlers(db, rdb, adapter, secretProvider)
 	consumerRepo := repository.NewConsumerRepo(db)
 	auditRepo := repository.NewAuditRepo(db)
 	rateLimiter := service.NewRateLimiter(rdb)
@@ -217,4 +226,24 @@ func extractDomain(from string) string {
 		}
 	}
 	return "localhost"
+}
+
+// initSecretProvider initializes the HMAC secret encryption provider.
+// If no HMAC_MASTER_KEY is set, it generates one and logs it (single-node dev mode).
+// In production, set HMAC_MASTER_KEY as a 64-char hex string (32 bytes) in the environment.
+func initSecretProvider(masterKey string) (repository.HMACSecretProvider, error) {
+	if masterKey == "" {
+		// Dev-only: generate a key and log it
+		generated, err := auth.GenerateHMACMasterKey()
+		if err != nil {
+			return nil, fmt.Errorf("generate hmac master key: %w", err)
+		}
+		slog.Warn("HMAC_MASTER_KEY not set — generated temporary key (dev mode only)", "key", generated)
+		masterKey = generated
+	} else {
+		if err := auth.ValidateHMACMasterKey(masterKey); err != nil {
+			return nil, fmt.Errorf("invalid HMAC_MASTER_KEY: %w", err)
+		}
+	}
+	return repository.NewAESSecretProvider(masterKey), nil
 }

@@ -2,25 +2,41 @@ package server
 
 import (
 	"context"
+	"encoding/json"
+	"io"
 	"log/slog"
 	"net"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/flyasky/notifier/internal/auth"
 	"github.com/flyasky/notifier/internal/handler"
 	"github.com/flyasky/notifier/internal/model"
 	"github.com/flyasky/notifier/internal/repository"
 	"github.com/flyasky/notifier/internal/service"
 )
 
-// AuthMiddleware validates Bearer tokens against stored hashes.
-func AuthMiddleware(repo *repository.ConsumerRepo) func(http.Handler) http.Handler {
+// AuthMiddleware authenticates requests using either:
+//   1. HMAC request signing (X-Consumer-ID, X-Timestamp, X-Signature headers), or
+//   2. Bearer token (Authorization: Bearer <api-key>)
+//
+// HMAC is attempted first; if HMAC headers are present, Bearer fallback is skipped.
+func AuthMiddleware(repo *repository.ConsumerRepo, secretProvider repository.HMACSecretProvider) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			consumerID := r.Header.Get("X-Consumer-ID")
+			if consumerID != "" {
+				// --- HMAC auth ---
+				authenticateHMAC(w, r, repo, secretProvider, next)
+				return
+			}
+
+			// --- Bearer token fallback ---
 			token := r.Header.Get("Authorization")
 			if !strings.HasPrefix(token, "Bearer ") {
-				http.Error(w, `{"error":"unauthorized","message":"missing authorization header"}`, http.StatusUnauthorized)
+				http.Error(w, `{"error":"unauthorized","message":"missing authorization or HMAC headers"}`, http.StatusUnauthorized)
 				return
 			}
 			rawKey := strings.TrimPrefix(token, "Bearer ")
@@ -37,6 +53,64 @@ func AuthMiddleware(repo *repository.ConsumerRepo) func(http.Handler) http.Handl
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
+}
+
+// authenticateHMAC handles the HMAC request signing flow.
+func authenticateHMAC(w http.ResponseWriter, r *http.Request, repo *repository.ConsumerRepo, secretProvider repository.HMACSecretProvider, next http.Handler) {
+	consumerID := r.Header.Get("X-Consumer-ID")
+	timestampStr := r.Header.Get("X-Timestamp")
+	signature := r.Header.Get("X-Signature")
+
+	if consumerID == "" || timestampStr == "" || signature == "" {
+		http.Error(w, `{"error":"unauthorized","message":"missing HMAC headers"}`, http.StatusUnauthorized)
+		return
+	}
+
+	timestamp, err := strconv.ParseInt(timestampStr, 10, 64)
+	if err != nil {
+		http.Error(w, `{"error":"unauthorized","message":"invalid timestamp"}`, http.StatusUnauthorized)
+		return
+	}
+
+	// Reject stale requests (max 5 minute clock skew)
+	if !auth.CheckTimestamp(timestamp, auth.DefaultMaxClockSkew) {
+		http.Error(w, `{"error":"unauthorized","message":"request expired or clock skew too large"}`, http.StatusUnauthorized)
+		return
+	}
+
+	// Read body for signature verification (must be read before it can be re-used)
+	bodyBytes, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, `{"error":"unauthorized","message":"cannot read request body"}`, http.StatusUnauthorized)
+		return
+	}
+	r.Body = io.NopCloser(strings.NewReader(string(bodyBytes))) // restore for downstream
+
+	// Verify HMAC signature
+	var bodyJSON interface{}
+	if len(bodyBytes) > 0 {
+		// Try to parse as JSON for canonical verification
+		if err := json.Unmarshal(bodyBytes, &bodyJSON); err != nil {
+			// Not JSON — use raw bytes for signing
+			bodyJSON = bodyBytes
+		}
+	} else {
+		bodyJSON = ""
+	}
+
+	consumer, err := repo.AuthenticateHMAC(r.Context(), consumerID, timestamp, bodyJSON, signature, secretProvider)
+	if err != nil {
+		http.Error(w, `{"error":"unauthorized","message":"invalid HMAC signature"}`, http.StatusUnauthorized)
+		return
+	}
+
+	if consumer.Suspended {
+		http.Error(w, `{"error":"forbidden","message":"consumer is suspended"}`, http.StatusForbidden)
+		return
+	}
+
+	ctx := context.WithValue(r.Context(), handler.ConsumerContextKey, consumer)
+	next.ServeHTTP(w, r.WithContext(ctx))
 }
 
 // AdminAuthMiddleware validates the admin API key for admin routes.

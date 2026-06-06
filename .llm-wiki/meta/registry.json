@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "last_updated": "2026-06-06T19:15:03.359Z",
+  "last_updated": "2026-06-06T20:02:19.615Z",
   "pages": {
     "concepts/abuse-detection-anti-spam": {
       "type": "concept",
@@ -20,6 +20,24 @@
         "[[sources/SRC-2026-06-06-001]]"
       ]
     },
+    "concepts/api-key-rotation": {
+      "type": "concept",
+      "title": "api-key-rotation",
+      "created": "2026-06-06",
+      "updated": "2026-06-06",
+      "sources": [
+        "[sources/SRC-2026-06-06-001]"
+      ]
+    },
+    "concepts/hmac-request-signing": {
+      "type": "concept",
+      "title": "hmac-request-signing",
+      "created": "2026-06-06",
+      "updated": "2026-06-06",
+      "sources": [
+        "[sources/SRC-2026-06-06-002]"
+      ]
+    },
     "concepts/job-status-tracking": {
       "type": "concept",
       "title": "job-status-tracking",
@@ -36,6 +54,15 @@
       "updated": "2026-06-06",
       "sources": [
         "[[sources/SRC-2026-06-06-001]]"
+      ]
+    },
+    "entities/consumer": {
+      "type": "entity",
+      "title": "consumer",
+      "created": "2026-06-06",
+      "updated": "2026-06-06",
+      "sources": [
+        "[sources/SRC-2026-06-06-001]"
       ]
     },
     "entities/notifier": {
@@ -57,6 +84,65 @@
       "raw_path": "raw/sources/SRC-2026-06-06-001/extracted.md",
       "captured": "2026-06-06",
       "status": "ingested"
+    },
+    "sources/SRC-2026-06-06-002": {
+      "type": "source",
+      "title": "SRC-2026-06-06-002",
+      "created": "2026-06-06",
+      "updated": "2026-06-06",
+      "format": "text",
+      "source_id": "SRC-2026-06-06-002",
+      "raw_path": "raw/sources/SRC-2026-06-06-002/extracted.md",
+      "captured": "2026-06-06",
+      "status": "skeleton"
+    },
+    "sources/obs-2026-06-06-api-key-rotation-concept-added": {
+      "type": "source",
+      "title": "\"Observation: API key rotation concept added\"",
+      "created": "2026-06-06",
+      "updated": "2026-06-06",
+      "slug": "obs-2026-06-06-api-key-rotation-concept-added",
+      "status": "observation",
+      "relevance": "high",
+      "observed_at": "2026-06-06T19:24:56.515Z",
+      "tags": [
+        "wiki",
+        "security",
+        "api-key-rotation"
+      ],
+      "source_context": "\"Enriching wiki with API key rotation knowledge\""
+    },
+    "sources/obs-2026-06-06-hmac-request-signing-implemented": {
+      "type": "source",
+      "title": "\"Observation: HMAC request signing implemented\"",
+      "created": "2026-06-06",
+      "updated": "2026-06-06",
+      "slug": "obs-2026-06-06-hmac-request-signing-implemented",
+      "status": "observation",
+      "relevance": "high",
+      "observed_at": "2026-06-06T20:02:15.133Z",
+      "tags": [
+        "auth",
+        "hmac",
+        "security",
+        "implementation"
+      ],
+      "source_context": "\"Implementing HMAC request signing for Notifier\""
+    },
+    "sources/obs-2026-06-06-wiki-cross-linking-improved": {
+      "type": "source",
+      "title": "\"Observation: Wiki cross-linking improved\"",
+      "created": "2026-06-06",
+      "updated": "2026-06-06",
+      "slug": "obs-2026-06-06-wiki-cross-linking-improved",
+      "status": "observation",
+      "relevance": "medium",
+      "observed_at": "2026-06-06T19:24:56.516Z",
+      "tags": [
+        "wiki",
+        "cross-linking"
+      ],
+      "source_context": "\"Improving wiki health and interlinking\""
     }
   }
 }

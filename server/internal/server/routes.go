@@ -19,13 +19,13 @@ type Handlers struct {
 	Admin    *handler.AdminHandler
 }
 
-func NewHandlers(db *gorm.DB, rdb *redis.Client, cfg *ConfigAdapter) *Handlers {
+func NewHandlers(db *gorm.DB, rdb *redis.Client, cfg *ConfigAdapter, secretProvider repository.HMACSecretProvider) *Handlers {
 	// Repos
 	consumerRepo := repository.NewConsumerRepo(db)
 	jobRepo := repository.NewJobRepo(db)
 
 	// Services
-	consumerSvc := service.NewConsumerService(consumerRepo)
+	consumerSvc := service.NewConsumerService(consumerRepo, secretProvider)
 	dispatchSvc := service.NewDispatchService(jobRepo, rdb, cfg.StreamName, cfg.DLQStream, cfg.MaxRetries, cfg.SenderDomain)
 
 	// Handlers
@@ -38,11 +38,12 @@ func NewHandlers(db *gorm.DB, rdb *redis.Client, cfg *ConfigAdapter) *Handlers {
 }
 
 type ConfigAdapter struct {
-	AdminKey     string
-	StreamName   string
-	DLQStream    string
-	MaxRetries   int
-	SenderDomain string
+	AdminKey       string
+	StreamName     string
+	DLQStream      string
+	MaxRetries     int
+	SenderDomain   string
+	SecretProvider repository.HMACSecretProvider
 }
 
 func (c *ConfigAdapter) JobStream() string {
@@ -68,7 +69,7 @@ func NewRouter(h *Handlers, consumerRepo *repository.ConsumerRepo, auditRepo *re
 	r.Route("/v1", func(r chi.Router) {
 		r.Use(BodySizeLimitMiddleware(10 << 20)) // 10 MB max body
 		r.Use(IPRateLimitMiddleware(rateLimiter, 120)) // 120 req/min per IP
-		r.Use(AuthMiddleware(consumerRepo))
+		r.Use(AuthMiddleware(consumerRepo, cfg.SecretProvider))
 		r.Use(RateLimitMiddleware(rateLimiter, 60)) // 60 req/min per consumer
 		r.Use(AuditMiddleware(auditRepo))
 		r.Post("/send", h.Dispatch.Send)

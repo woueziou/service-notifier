@@ -42,6 +42,31 @@ func (r *JobRepo) ListByConsumer(ctx context.Context, consumerID string, limit, 
 	return jobs, nil
 }
 
+func (r *JobRepo) ListAll(ctx context.Context, consumerID, status string, limit, offset int) ([]model.Job, int64, error) {
+	var jobs []model.Job
+	query := r.db.WithContext(ctx).Model(&model.Job{})
+
+	if consumerID != "" {
+		query = query.Where("consumer_id = ?", consumerID)
+	}
+	if status != "" {
+		query = query.Where("status = ?", status)
+	}
+
+	// Count total
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, fmt.Errorf("count jobs: %w", err)
+	}
+
+	// Fetch page
+	if err := query.Order("created_at DESC").Limit(limit).Offset(offset).Find(&jobs).Error; err != nil {
+		return nil, 0, fmt.Errorf("list jobs: %w", err)
+	}
+
+	return jobs, total, nil
+}
+
 func (r *JobRepo) MarkDelivered(ctx context.Context, id string) error {
 	now := time.Now()
 	if err := r.db.WithContext(ctx).Model(&model.Job{}).

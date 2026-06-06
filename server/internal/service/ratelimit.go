@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"time"
 
@@ -24,6 +26,9 @@ func (rl *RateLimiter) Allow(ctx context.Context, consumerID string, maxPerMinut
 	now := time.Now().UnixMilli()
 	window := now - 60_000 // 1 minute ago
 
+	// Unique member per request (prevents dedup when multiple requests hit same millisecond)
+	member := fmt.Sprintf("%d:%s", now, randomHex(8))
+
 	pipe := rl.rdb.Pipeline()
 
 	// Remove entries outside the window
@@ -35,7 +40,7 @@ func (rl *RateLimiter) Allow(ctx context.Context, consumerID string, maxPerMinut
 	// Add current request
 	pipe.ZAdd(ctx, key, redis.Z{
 		Score:  float64(now),
-		Member: fmt.Sprintf("%d", now),
+		Member: member,
 	})
 
 	// Set TTL on the key
@@ -47,4 +52,12 @@ func (rl *RateLimiter) Allow(ctx context.Context, consumerID string, maxPerMinut
 
 	count := countCmd.Val()
 	return count < int64(maxPerMinute), nil
+}
+
+func randomHex(n int) string {
+	buf := make([]byte, n)
+	if _, err := rand.Read(buf); err != nil {
+		return fmt.Sprintf("%d", time.Now().UnixNano())
+	}
+	return hex.EncodeToString(buf)
 }

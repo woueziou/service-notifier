@@ -33,7 +33,7 @@ func NewHandlers(db *gorm.DB, rdb *redis.Client, cfg *ConfigAdapter) *Handlers {
 		Consumer: handler.NewConsumerHandler(consumerSvc, cfg.SenderDomain),
 		Dispatch: handler.NewDispatchHandler(dispatchSvc),
 		Health:   handler.NewHealthHandler(db, rdb),
-		Admin:    handler.NewAdminHandler(rdb, cfg.DLQStream),
+		Admin:    handler.NewAdminHandler(rdb, cfg.DLQStream, cfg.StreamName, jobRepo),
 	}
 }
 
@@ -45,7 +45,11 @@ type ConfigAdapter struct {
 	SenderDomain string
 }
 
-func NewRouter(h *Handlers, consumerRepo *repository.ConsumerRepo, auditRepo *repository.AuditRepo, cfg *ConfigAdapter) *chi.Mux {
+func (c *ConfigAdapter) JobStream() string {
+	return c.StreamName
+}
+
+func NewRouter(h *Handlers, consumerRepo *repository.ConsumerRepo, auditRepo *repository.AuditRepo, rateLimiter *service.RateLimiter, cfg *ConfigAdapter) *chi.Mux {
 	r := chi.NewRouter()
 
 	// Global middleware
@@ -58,9 +62,12 @@ func NewRouter(h *Handlers, consumerRepo *repository.ConsumerRepo, auditRepo *re
 	// Health (no auth)
 	r.Get("/health", h.Health.Check)
 
-	// API v1 — consumer-authenticated
+	// API v1 — consumer-authenticated, rate-limited
 	r.Route("/v1", func(r chi.Router) {
+		r.Use(BodySizeLimitMiddleware(10 << 20)) // 10 MB max body
+		r.Use(IPRateLimitMiddleware(rateLimiter, 120)) // 120 req/min per IP
 		r.Use(AuthMiddleware(consumerRepo))
+		r.Use(RateLimitMiddleware(rateLimiter, 60)) // 60 req/min per consumer
 		r.Use(AuditMiddleware(auditRepo))
 		r.Post("/send", h.Dispatch.Send)
 		r.Get("/jobs/{id}", h.Dispatch.GetJob)
@@ -76,7 +83,7 @@ func NewRouter(h *Handlers, consumerRepo *repository.ConsumerRepo, auditRepo *re
 
 		r.Get("/dlq", h.Admin.ListDLQ)
 		r.Post("/dlq/{id}/replay", h.Admin.ReplayDLQ)
-		// Consumer-scoped job listing is not implemented yet
+		r.Get("/jobs", h.Admin.ListJobs)
 	})
 
 	return r

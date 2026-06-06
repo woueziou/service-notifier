@@ -11,6 +11,7 @@ import (
 	"github.com/flyasky/notifier/internal/model"
 	"github.com/flyasky/notifier/internal/repository"
 	"github.com/flyasky/notifier/internal/server"
+	"github.com/flyasky/notifier/internal/service"
 	"github.com/flyasky/notifier/internal/worker"
 )
 
@@ -93,7 +94,8 @@ func main() {
 	handlers := server.NewHandlers(db, rdb, adapter)
 	consumerRepo := repository.NewConsumerRepo(db)
 	auditRepo := repository.NewAuditRepo(db)
-	router := server.NewRouter(handlers, consumerRepo, auditRepo, adapter)
+	rateLimiter := service.NewRateLimiter(rdb)
+	router := server.NewRouter(handlers, consumerRepo, auditRepo, rateLimiter, adapter)
 
 	// Start workers
 	jobRepo := repository.NewJobRepo(db)

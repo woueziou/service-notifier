@@ -91,3 +91,26 @@ func (r *JobRepo) MarkFailed(ctx context.Context, id, errMsg string) error {
 	}
 	return nil
 }
+
+// GetBounceRate returns the bounce rate (failed / total) and total job count for a consumer.
+func (r *JobRepo) GetBounceRate(ctx context.Context, consumerID string) (float64, int64, error) {
+	var total int64
+	if err := r.db.WithContext(ctx).Model(&model.Job{}).
+		Where("consumer_id = ?", consumerID).
+		Count(&total).Error; err != nil {
+		return 0, 0, fmt.Errorf("count jobs: %w", err)
+	}
+
+	if total == 0 {
+		return 0, 0, nil
+	}
+
+	var failed int64
+	if err := r.db.WithContext(ctx).Model(&model.Job{}).
+		Where("consumer_id = ? AND status IN ?", consumerID, []model.JobStatus{model.JobStatusFailed, model.JobStatusBounced}).
+		Count(&failed).Error; err != nil {
+		return 0, 0, fmt.Errorf("count failed: %w", err)
+	}
+
+	return float64(failed) / float64(total), total, nil
+}

@@ -33,7 +33,7 @@ func NewHandlers(db *gorm.DB, rdb *redis.Client, cfg *ConfigAdapter) *Handlers {
 		Consumer: handler.NewConsumerHandler(consumerSvc, cfg.SenderDomain),
 		Dispatch: handler.NewDispatchHandler(dispatchSvc),
 		Health:   handler.NewHealthHandler(db, rdb),
-		Admin:    handler.NewAdminHandler(rdb, cfg.DLQStream, cfg.StreamName, jobRepo),
+		Admin:    handler.NewAdminHandler(rdb, cfg.DLQStream, cfg.StreamName, jobRepo, consumerRepo),
 	}
 }
 
@@ -80,6 +80,9 @@ func NewRouter(h *Handlers, consumerRepo *repository.ConsumerRepo, auditRepo *re
 		r.Get("/consumers", h.Consumer.List)
 		r.Get("/consumers/{id}", h.Consumer.GetByID)
 		r.Post("/consumers", h.Consumer.Create)
+
+		r.Post("/consumers/{id}/suspend", h.Admin.SuspendConsumer)
+		r.Post("/consumers/{id}/reactivate", h.Admin.ReactivateConsumer)
 
 		r.Get("/dlq", h.Admin.ListDLQ)
 		r.Post("/dlq/{id}/replay", h.Admin.ReplayDLQ)

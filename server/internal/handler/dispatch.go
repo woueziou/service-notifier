@@ -37,6 +37,12 @@ func (h *DispatchHandler) Send(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Validate request fields
+	if msg := ValidateStruct(&req); msg != "" {
+		writeError(w, http.StatusBadRequest, msg)
+		return
+	}
+
 	resp, err := h.svc.Enqueue(r.Context(), consumer, &req)
 	if err != nil {
 		writeError(w, http.StatusBadRequest, err.Error())

@@ -10,14 +10,21 @@ import (
 )
 
 type AdminHandler struct {
-	rdb        *redis.Client
-	dlqStream  string
-	jobStream  string
-	jobRepo    *repository.JobRepo
+	rdb          *redis.Client
+	dlqStream    string
+	jobStream    string
+	jobRepo      *repository.JobRepo
+	consumerRepo *repository.ConsumerRepo
 }
 
-func NewAdminHandler(rdb *redis.Client, dlqStream, jobStream string, jobRepo *repository.JobRepo) *AdminHandler {
-	return &AdminHandler{rdb: rdb, dlqStream: dlqStream, jobStream: jobStream, jobRepo: jobRepo}
+func NewAdminHandler(rdb *redis.Client, dlqStream, jobStream string, jobRepo *repository.JobRepo, consumerRepo *repository.ConsumerRepo) *AdminHandler {
+	return &AdminHandler{
+		rdb:          rdb,
+		dlqStream:    dlqStream,
+		jobStream:    jobStream,
+		jobRepo:      jobRepo,
+		consumerRepo: consumerRepo,
+	}
 }
 
 // ListDLQ returns entries from the dead letter queue.
@@ -148,4 +155,36 @@ func (h *AdminHandler) ReplayDLQ(w http.ResponseWriter, r *http.Request) {
 		"status":  "replayed",
 		"message": "re-enqueued to " + h.jobStream,
 	})
+}
+
+// SuspendConsumer marks a consumer as suspended.
+// @Summary      Suspend a consumer
+// @Description  Suspend a consumer (prevents further email sending)
+// @Tags         admin
+// @Param        id  path  string  true  "Consumer ID"
+// @Success      200  {object}  map[string]string
+// @Router       /admin/consumers/{id}/suspend [post]
+func (h *AdminHandler) SuspendConsumer(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if err := h.consumerRepo.Suspend(r.Context(), id, "manual admin action"); err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]string{"status": "suspended"})
+}
+
+// ReactivateConsumer reactivates a previously suspended consumer.
+// @Summary      Reactivate a consumer
+// @Description  Reactivate a suspended consumer
+// @Tags         admin
+// @Param        id  path  string  true  "Consumer ID"
+// @Success      200  {object}  map[string]string
+// @Router       /admin/consumers/{id}/reactivate [post]
+func (h *AdminHandler) ReactivateConsumer(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if err := h.consumerRepo.Reactivate(r.Context(), id); err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]string{"status": "reactivated"})
 }

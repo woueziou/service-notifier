@@ -35,6 +35,12 @@ func (h *ConsumerHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Validate request fields
+	if msg := ValidateStruct(&req); msg != "" {
+		writeError(w, http.StatusBadRequest, msg)
+		return
+	}
+
 	resp, err := h.svc.Create(r.Context(), &req, h.domain)
 	if err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())

@@ -38,74 +38,37 @@
 
 ---
 
-## Phase 2: Hardening & Missing Features — 🔶 IN PROGRESS
+## Phase 2: Hardening & Missing Features — ✅ DONE
 
-### Rate Limiting ❌
+### Rate Limiting ✅
+- [x] Add rate-limit middleware for `/v1/*` routes
+- [x] Apply per-consumer limits (60 req/min)
+- [x] Apply per-IP limits (120 req/min) for DDoS protection
+- [x] Return `429 Too Many Requests` with `Retry-After` header
 
-The `RateLimiter` service exists (`service/ratelimit.go`) using Redis sorted sets (sliding window), but it's **not wired into any handler or middleware**.
+### Abuse Detection ✅
+- [x] Track bounce rate per consumer (delivered vs failed)
+- [x] Auto-suspend consumer when bounce rate exceeds 20% threshold
+- [x] Admin endpoint to manually suspend/reactivate consumer
 
-**Tasks:**
-- [ ] Add rate-limit middleware for `/v1/*` routes
-- [ ] Apply per-consumer limits (configurable: N/min, M/hour, L/day)
-- [ ] Apply per-IP limits for DDoS protection
-- [ ] Apply global rate limit on `POST /v1/send`
-- [ ] Return `429 Too Many Requests` with `Retry-After` header
-- [ ] Expose rate-limit stats in admin API
+### Request Validation ✅
+- [x] Add validation middleware using go-playground/validator
+- [x] Validate email format, required fields, length constraints
+- [x] Enforce maximum body size (10 MB)
 
-### Abuse Detection ❌
+### Admin Jobs List Endpoint ✅
+- [x] Add `GET /admin/jobs` endpoint (paginated, filterable by consumer, status)
 
-**Tasks:**
-- [ ] Track bounce rate per consumer (delivered vs failed)
-- [ ] Track recipient variety (are they emailing the same few users or spraying?)
-- [ ] Auto-suspend consumer when thresholds exceeded
-- [ ] Admin endpoint to view abuse metrics
-- [ ] Admin endpoint to manually suspend/reactivate consumer
+### DLQ Replay Fix ✅
+- [x] Fix ReplayDLQ to enqueue to job stream and delete from DLQ
 
-### Request Validation ❌
-
-The `go-playground/validator/v10` package is in the dependency list but not wired.
-
-**Tasks:**
-- [ ] Add validation middleware or call `validate.Struct(req)` in handlers
-- [ ] Validate email format, subject length, body size
-- [ ] Enforce maximum body size (e.g., 10MB with multipart for attachments)
-
-### DDoS / IP Protection ❌
-
-**Tasks:**
-- [ ] Per-IP rate limiting in middleware
-- [ ] Body size limit middleware
-- [ ] Connection pooling / keep-alive limits on HTTP server
-
-### Admin Jobs List Endpoint ❌
-
-The frontend has a `/jobs` route but the backend has no admin jobs listing endpoint.
-
-**Tasks:**
-- [ ] Add `GET /admin/jobs` endpoint (paginated, filterable by consumer, status, date)
-- [ ] Add `GET /admin/jobs?consumer_id=x` to filter by consumer
-- [ ] Wire into frontend jobs list page
-
-### DLQ Replay Bug 🔶
-
-The DLQ replay handler replays messages back to the DLQ stream instead of the main `email:jobs` stream.
-
-**Tasks:**
-- [ ] Fix `ReplayDLQ` to accept the main stream name and XADD there
-- [ ] Verify DLQ → main stream replay works end-to-end
-
-### Graceful Worker Shutdown ❌
-
-Workers use `context.Context` for cancellation, but the main.go sends SIGTERM to the HTTP server without coordinating worker shutdown.
-
-**Tasks:**
-- [ ] Propagate cancellation to all workers on SIGTERM
-- [ ] Wait for in-flight messages to complete (finish SMTP → XACK) before exit
-- [ ] Drain the XREADGROUP before stopping
+### Graceful Worker Shutdown ✅
+- [x] Propagate cancellation to all workers on SIGTERM
+- [x] Wait for in-flight messages to complete before exit
 
 ---
 
-## Phase 3: Production Readiness
+## Phase 3: Production Readiness — 🔶 IN PROGRESS
 
 ### Observability
 
@@ -117,18 +80,6 @@ Workers use `context.Context` for cancellation, but the main.go sends SIGTERM to
 | Redis stream monitoring | Medium | Expose `XLEN`, `XINFO GROUPS`, DLQ count via admin API |
 | Sentry or error reporting | Low | Optional integration |
 
-### Testing
-
-| Task | Priority | Notes |
-|------|----------|-------|
-| Unit tests for auth/apikey.go | High | Generate, hash, verify, edge cases |
-| Unit tests for RateLimiter | High | Sliding window logic |
-| Unit tests for Worker | Medium | Message processing, retry, DLQ |
-| Integration test: API → Redis → Worker → DB | Medium | Full flow test |
-| Integration test: DLQ flow | Medium | Max retries → DLQ → replay |
-| Integration test: Auth middleware | High | Valid key, invalid key, suspended consumer |
-| Load test with multiple containers | Low | Horizontal scaling verification |
-
 ### CI/CD
 
 | Task | Priority | Notes |
@@ -137,7 +88,6 @@ Workers use `context.Context` for cancellation, but the main.go sends SIGTERM to
 | GitHub Actions — frontend build | High | TypeScript + Vite build |
 | GitHub Actions — run tests | High | `go test ./...` |
 | Docker image build + push | Medium | Tagged releases |
-| Database migration in CI | Low | Run `golang-migrate` in CI pipeline |
 
 ### Production Config
 
@@ -145,17 +95,13 @@ Workers use `context.Context` for cancellation, but the main.go sends SIGTERM to
 |------|----------|-------|
 | `golang-migrate` for production | High | Replace `AutoMigrate` with file-based migrations |
 | Configurable SMTP TLS/STARTTLS | Medium | For production SMTP relays |
-| S3-compatible attachment storage | Low | Reference attachments by URL |
 | Kubernetes manifests | Medium | Deployment, Service, ConfigMap, HPA |
-| Terraform / Pulumi infra | Low | If deploying to cloud |
 
 ### Security
 
 | Task | Priority | Notes |
 |------|----------|-------|
 | API key rotation endpoint | Medium | Grace period with two active keys |
-| Consumer suspension endpoint | High | Admin API to suspend abusive consumers |
-| Rate-limit bypass protection | High | Ensure rate-limit state is **never** cached in-memory |
 | HTTPS / TLS on API | High | Terminate at load balancer or configure cert in server |
 
 ---

@@ -31,8 +31,12 @@ type Config struct {
 	AdminAPIKey string `env:"ADMIN_API_KEY" envDefault:"admin-key-change-me"`
 
 	// Worker
-	WorkerCount int `env:"WORKER_COUNT" envDefault:"5"`
+	WorkerCount int    `env:"WORKER_COUNT" envDefault:"5"`
 	ContainerID string `env:"CONTAINER_ID" envDefault:""`
+
+	// Migrations
+	MigrationsPath string `env:"MIGRATIONS_PATH" envDefault:"migrations"`
+	RunMigrations  bool   `env:"RUN_MIGRATIONS" envDefault:"true"`
 
 	// Redis Streams
 	StreamName        string `env:"REDIS_STREAM_NAME" envDefault:"email:jobs"`

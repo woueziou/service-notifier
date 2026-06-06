@@ -49,18 +49,20 @@ func (c *ConfigAdapter) JobStream() string {
 	return c.StreamName
 }
 
-func NewRouter(h *Handlers, consumerRepo *repository.ConsumerRepo, auditRepo *repository.AuditRepo, rateLimiter *service.RateLimiter, cfg *ConfigAdapter) *chi.Mux {
+func NewRouter(h *Handlers, consumerRepo *repository.ConsumerRepo, auditRepo *repository.AuditRepo, rateLimiter *service.RateLimiter, metrics *MetricsCollector, cfg *ConfigAdapter) *chi.Mux {
 	r := chi.NewRouter()
 
 	// Global middleware
 	r.Use(chimw.RequestID)
 	r.Use(chimw.RealIP)
 	r.Use(LoggerMiddleware)
+	r.Use(MetricsMiddleware(metrics))
 	r.Use(chimw.Recoverer)
 	r.Use(chimw.Timeout(30 * time.Second))
 
-	// Health (no auth)
+	// Health and metrics (no auth)
 	r.Get("/health", h.Health.Check)
+	r.Get("/metrics", MetricsHandler().ServeHTTP)
 
 	// API v1 — consumer-authenticated, rate-limited
 	r.Route("/v1", func(r chi.Router) {

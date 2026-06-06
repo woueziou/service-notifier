@@ -16,6 +16,10 @@ import (
 	"github.com/flyasky/notifier/internal/server"
 	"github.com/flyasky/notifier/internal/service"
 	"github.com/flyasky/notifier/internal/worker"
+
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
 // @title        Notifier API
@@ -52,12 +56,21 @@ func main() {
 	}
 	slog.Info("connected to postgresql")
 
-	// Auto-migrate (dev-friendly; use golang-migrate for production)
-	if err := db.AutoMigrate(&model.Consumer{}, &model.Job{}, &model.AuditLog{}); err != nil {
-		slog.Error("failed to migrate database", "error", err)
-		os.Exit(1)
+	// Run migrations
+	if cfg.RunMigrations {
+		if err := runMigrations(cfg.DatabaseURL, cfg.MigrationsPath); err != nil {
+			slog.Error("failed to run migrations", "error", err)
+			os.Exit(1)
+		}
+		slog.Info("database migrations complete")
+	} else {
+		// Dev fallback: AutoMigrate (creates tables from models)
+		if err := db.AutoMigrate(&model.Consumer{}, &model.Job{}, &model.AuditLog{}); err != nil {
+			slog.Error("failed to auto-migrate database", "error", err)
+			os.Exit(1)
+		}
+		slog.Info("database auto-migrated (dev mode)")
 	}
-	slog.Info("database migrated")
 
 	// Connect to Redis
 	rdb, err := server.ConnectRedis(cfg.RedisHost, cfg.RedisPort, cfg.RedisPass, cfg.RedisDB)
@@ -98,7 +111,8 @@ func main() {
 	consumerRepo := repository.NewConsumerRepo(db)
 	auditRepo := repository.NewAuditRepo(db)
 	rateLimiter := service.NewRateLimiter(rdb)
-	router := server.NewRouter(handlers, consumerRepo, auditRepo, rateLimiter, adapter)
+	metrics := server.NewMetricsCollector()
+	router := server.NewRouter(handlers, consumerRepo, auditRepo, rateLimiter, metrics, adapter)
 
 	// --- Graceful Shutdown Setup ---
 	//
@@ -177,6 +191,23 @@ func main() {
 	slog.Info("waiting for workers to finish...")
 	wg.Wait()
 	slog.Info("all workers stopped, goodbye")
+}
+
+func runMigrations(databaseURL, migrationsPath string) error {
+	m, err := migrate.New(
+		"file://"+migrationsPath,
+		databaseURL,
+	)
+	if err != nil {
+		return fmt.Errorf("migrate init: %w", err)
+	}
+	defer m.Close()
+
+	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
+		return fmt.Errorf("migrate up: %w", err)
+	}
+
+	return nil
 }
 
 func extractDomain(from string) string {

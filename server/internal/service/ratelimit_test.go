@@ -8,136 +8,149 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-// TestRateLimiter_Allow uses an in-memory Redis (via miniredis or mock).
-// For unit testing without a real Redis, we use a minimal approach:
-// we test the logic by checking Redis commands are formed correctly.
-//
-// For a full integration test, run with a real Redis instance.
-
-// mockRedisClient is a minimal mock for the Redis commands used by RateLimiter.
-type mockRedisClient struct {
-	zRemRangeByScoreFunc func(ctx context.Context, key, min, max string) *redis.IntCmd
-	zCardFunc            func(ctx context.Context, key string) *redis.IntCmd
-	zAddFunc             func(ctx context.Context, key string, members ...redis.Z) *redis.IntCmd
-	expireFunc           func(ctx context.Context, key string, expiration time.Duration) *redis.BoolCmd
-	pipeFunc             func() redis.Pipeliner
-}
-
-func (m *mockRedisClient) ZRemRangeByScore(ctx context.Context, key, min, max string) *redis.IntCmd {
-	return m.zRemRangeByScoreFunc(ctx, key, min, max)
-}
-
-func (m *mockRedisClient) ZCard(ctx context.Context, key string) *redis.IntCmd {
-	return m.zCardFunc(ctx, key)
-}
-
-func (m *mockRedisClient) ZAdd(ctx context.Context, key string, members ...redis.Z) *redis.IntCmd {
-	return m.zAddFunc(ctx, key, members...)
-}
-
-func (m *mockRedisClient) Expire(ctx context.Context, key string, expiration time.Duration) *redis.BoolCmd {
-	return m.expireFunc(ctx, key, expiration)
-}
-
-func (m *mockRedisClient) Pipeline() redis.Pipeliner {
-	return m.pipeFunc()
-}
-
-// mockPipeliner implements redis.Pipeliner for testing.
-type mockPipeliner struct {
-	execFunc func(ctx context.Context) ([]redis.Cmder, error)
-	cmds     []redis.Cmder
-}
-
-func (m *mockPipeliner) Exec(ctx context.Context) ([]redis.Cmder, error) {
-	return m.execFunc(ctx)
-}
-
-func (m *mockPipeliner) ZRemRangeByScore(ctx context.Context, key, min, max string) *redis.IntCmd {
-	cmd := redis.NewIntCmd(ctx, "ZREMRANGEBYSCORE", key, min, max)
-	m.cmds = append(m.cmds, cmd)
-	return cmd
-}
-
-func (m *mockPipeliner) ZCard(ctx context.Context, key string) *redis.IntCmd {
-	cmd := redis.NewIntCmd(ctx, "ZCARD", key)
-	m.cmds = append(m.cmds, cmd)
-	return cmd
-}
-
-func (m *mockPipeliner) ZAdd(ctx context.Context, key string, members ...redis.Z) *redis.IntCmd {
-	args := []interface{}{"ZADD", key}
-	for _, z := range members {
-		args = append(args, z.Score, z.Member)
-	}
-	cmd := redis.NewIntCmd(ctx, args...)
-	m.cmds = append(m.cmds, cmd)
-	return cmd
-}
-
-func (m *mockPipeliner) Expire(ctx context.Context, key string, expiration time.Duration) *redis.BoolCmd {
-	cmd := redis.NewBoolCmd(ctx, "EXPIRE", key, int64(expiration.Seconds()))
-	m.cmds = append(m.cmds, cmd)
-	return cmd
-}
-
-func (m *mockPipeliner) Close() error { return nil }
-func (m *mockPipeliner) Discard()     {}
-
-func TestRateLimiter_UnderLimit(t *testing.T) {
-	pipe := &mockPipeliner{
-		execFunc: func(ctx context.Context) ([]redis.Cmder, error) {
-			// ZRemRangeByScore returns count removed (0)
-			// ZCard returns current count (5, under limit)
-			// ZAdd returns 1
-			// Expire returns true
-			results := []redis.Cmder{
-				redis.NewIntResult(0, nil),
-				redis.NewIntResult(5, nil),
-				redis.NewIntResult(1, nil),
-				redis.NewBoolResult(true, nil),
-			}
-			return results, nil
-		},
-	}
-
-	client := &mockRedisClient{
-		pipeFunc: func() redis.Pipeliner { return pipe },
-	}
-
-	rl := &RateLimiter{rdb: nil}
-	rl.rdb = nil
-	_ = client
-	_ = rl
-
-	// We test via the real Redis for now; mock test below is structural reference.
-	t.Log("RateLimiter mock test structure verified")
-}
-
-func TestRateLimiter_OverLimit(t *testing.T) {
-	pipe := &mockPipeliner{
-		execFunc: func(ctx context.Context) ([]redis.Cmder, error) {
-			results := []redis.Cmder{
-				redis.NewIntResult(0, nil),
-				redis.NewIntResult(100, nil), // 100 requests, over limit
-				redis.NewIntResult(1, nil),
-				redis.NewBoolResult(true, nil),
-			}
-			return results, nil
-		},
-	}
-
-	client := &mockRedisClient{
-		pipeFunc: func() redis.Pipeliner { return pipe },
-	}
-
-	_ = client
-	t.Log("RateLimiter over-limit mock verified")
-}
-
 // TestRateLimiter_Allow_Integration is a manual test that requires a real Redis.
-// Run with: REDIS_TEST=1 go test ./internal/service/ -run TestRateLimiter_Allow_Integration
+//
+// To run:
+//   REDIS_TEST=1 go test ./internal/service/ -run TestRateLimiter_Allow_Integration -v
+//
+// Prerequisites: Redis running on localhost:6379 with password "Rd1s_P@ssw0rd_2024"
 func TestRateLimiter_Allow_Integration(t *testing.T) {
-	// This test is manually executed against a real Redis
-	t.Log("Integration test skipped by default. Run with REDIS_TEST=1")
+	if testing.Short() {
+		t.Skip("skipping integration test")
+	}
+
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "Rd1s_P@ssw0rd_2024",
+		DB:       0,
+	})
+
+	if err := rdb.Ping(context.Background()).Err(); err != nil {
+		t.Skipf("redis not available: %v", err)
+	}
+	defer rdb.Close()
+
+	rl := NewRateLimiter(rdb)
+	consumerID := "test-consumer-rate"
+
+	// Clean up any previous test data
+	rdb.Del(context.Background(), "ratelimit:test-consumer-rate:minute")
+
+	// Allow 5 requests per minute
+	maxPerMinute := 5
+
+	// First 5 requests should be allowed
+	for i := 0; i < maxPerMinute; i++ {
+		allowed, err := rl.Allow(context.Background(), consumerID, maxPerMinute)
+		if err != nil {
+			t.Fatalf("Allow() returned error on request %d: %v", i, err)
+		}
+		if !allowed {
+			t.Errorf("request %d should be allowed (under limit)", i)
+		}
+	}
+
+	// 6th request should be rate-limited
+	allowed, err := rl.Allow(context.Background(), consumerID, maxPerMinute)
+	if err != nil {
+		t.Fatalf("Allow() returned error: %v", err)
+	}
+	if allowed {
+		t.Error("6th request should be rate-limited")
+	}
+
+	// Clean up
+	rdb.Del(context.Background(), "ratelimit:test-consumer-rate:minute")
+}
+
+func TestRateLimiter_Allow_Twice(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping integration test")
+	}
+
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "Rd1s_P@ssw0rd_2024",
+		DB:       0,
+	})
+
+	if err := rdb.Ping(context.Background()).Err(); err != nil {
+		t.Skipf("redis not available: %v", err)
+	}
+	defer rdb.Close()
+
+	rl := NewRateLimiter(rdb)
+	consumerID := "test-consumer-rate-2"
+
+	rdb.Del(context.Background(), "ratelimit:test-consumer-rate-2:minute")
+
+	// Same consumer, high limit — should always be allowed
+	for i := 0; i < 10; i++ {
+		allowed, err := rl.Allow(context.Background(), consumerID, 100)
+		if err != nil {
+			t.Fatalf("Allow() returned error: %v", err)
+		}
+		if !allowed {
+			t.Errorf("request %d should be allowed", i)
+		}
+	}
+
+	rdb.Del(context.Background(), "ratelimit:test-consumer-rate-2:minute")
+}
+
+func TestRateLimiter_Allow_DifferentConsumers(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping integration test")
+	}
+
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "Rd1s_P@ssw0rd_2024",
+		DB:       0,
+	})
+
+	if err := rdb.Ping(context.Background()).Err(); err != nil {
+		t.Skipf("redis not available: %v", err)
+	}
+	defer rdb.Close()
+
+	rl := NewRateLimiter(rdb)
+
+	// Clean up
+	rdb.Del(context.Background(), "ratelimit:consumer-a:minute")
+	rdb.Del(context.Background(), "ratelimit:consumer-b:minute")
+
+	// Both consumers should be able to make requests independently
+	allowedA, _ := rl.Allow(context.Background(), "consumer-a", 1)
+	if !allowedA {
+		t.Error("consumer-a first request should be allowed")
+	}
+
+	allowedB, _ := rl.Allow(context.Background(), "consumer-b", 1)
+	if !allowedB {
+		t.Error("consumer-b first request should be allowed")
+	}
+
+	// consumer-a should now be rate-limited (limit was 1)
+	allowedA2, _ := rl.Allow(context.Background(), "consumer-a", 1)
+	if allowedA2 {
+		t.Error("consumer-a second request should be rate-limited")
+	}
+
+	// consumer-b should also be rate-limited
+	allowedB2, _ := rl.Allow(context.Background(), "consumer-b", 1)
+	if allowedB2 {
+		t.Error("consumer-b second request should be rate-limited")
+	}
+
+	rdb.Del(context.Background(), "ratelimit:consumer-a:minute")
+	rdb.Del(context.Background(), "ratelimit:consumer-b:minute")
+}
+
+func TestRateLimiter_New(t *testing.T) {
+	// Just verify constructor works
+	rl := NewRateLimiter(nil)
+	if rl == nil {
+		t.Fatal("NewRateLimiter should not return nil")
+	}
 }

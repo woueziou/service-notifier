@@ -74,26 +74,27 @@
 
 | Task | Priority | Notes |
 |------|----------|-------|
-| Prometheus metrics endpoint | High | `GET /metrics` — request count, latency, queue depth, worker count |
+| Prometheus metrics endpoint | ✅ | `GET /metrics` — request count, latency, in-flight gauge |
 | Structured JSON logging | ✅ | Done via `log/slog` with JSON handler |
 | Request ID tracing | ✅ | Done via `chimw.RequestID` |
-| Redis stream monitoring | Medium | Expose `XLEN`, `XINFO GROUPS`, DLQ count via admin API |
+| Redis stream monitoring (XLEN gauges) | Medium | Queue depth + DLQ depth gauges (wiring in progress) |
 | Sentry or error reporting | Low | Optional integration |
 
 ### CI/CD
 
 | Task | Priority | Notes |
 |------|----------|-------|
-| GitHub Actions — Go build + vet | High | On every PR |
-| GitHub Actions — frontend build | High | TypeScript + Vite build |
-| GitHub Actions — run tests | High | `go test ./...` |
-| Docker image build + push | Medium | Tagged releases |
+| GitHub Actions — Go build + vet | ✅ | `go vet` + `staticcheck` on every PR |
+| GitHub Actions — frontend build | ✅ | TypeScript check + `npm run build` |
+| GitHub Actions — run tests | ✅ | `go test -short` with Redis service container |
+| GitHub Actions — Docker build | ✅ | `docker build` validation |
+| Docker image push to registry | Medium | Add login + push steps |
 
 ### Production Config
 
 | Task | Priority | Notes |
 |------|----------|-------|
-| `golang-migrate` for production | High | Replace `AutoMigrate` with file-based migrations |
+| `golang-migrate` for production | ✅ | File-based migrations, configurable via `RUN_MIGRATIONS`/`MIGRATIONS_PATH` |
 | Configurable SMTP TLS/STARTTLS | Medium | For production SMTP relays |
 | Kubernetes manifests | Medium | Deployment, Service, ConfigMap, HPA |
 

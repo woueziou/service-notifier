@@ -1,0 +1,11 @@
+{
+  "id": "SRC-2026-06-06-001",
+  "captured": "2026-06-06",
+  "packet_version": "1.0",
+  "title": "project description.md",
+  "file_path": "/Users/woueziou/works/flyasky/notifier/docs/project description.md",
+  "format": "markdown",
+  "extractor": "passthrough",
+  "extraction_status": "success",
+  "content_type": "text/markdown"
+}

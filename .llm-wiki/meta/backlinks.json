@@ -1,0 +1,15 @@
+{
+  "concepts/abuse-detection-anti-spam": [],
+  "concepts/api-key-based-authentication": [],
+  "concepts/job-status-tracking": [],
+  "concepts/single-source-of-truth-notification-dispatch": [],
+  "entities/notifier": [],
+  "sources/SRC-2026-06-06-001": [
+    "concepts/abuse-detection-anti-spam",
+    "concepts/api-key-based-authentication",
+    "concepts/job-status-tracking",
+    "concepts/single-source-of-truth-notification-dispatch",
+    "entities/notifier",
+    "sources/SRC-2026-06-06-001"
+  ]
+}

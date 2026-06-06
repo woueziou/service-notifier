@@ -1,0 +1,45 @@
+# postgres and redis are expected to be already running externally as containers
+# named "postgres" and "redis". They must be on the same Docker network.
+#
+# If they are on a custom network, uncomment the network section below
+# and set the network name.
+#
+#   docker network ls
+#   docker inspect postgres | jq '.[0].NetworkSettings.Networks'
+
+services:
+  mailpit: # SMTP test server (catches all outgoing emails)
+    image: axllent/mailpit:latest
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # Web UI
+
+  notifier:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: "8080"
+      DATABASE_URL: "postgres://postgres:P0stgr3s_Pssw0rd_2024@postgres:5432/notifier?sslmode=disable"
+      REDIS_HOST: "redis"
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: "Rd1s_P@ssw0rd_2024"
+      REDIS_DB: "0"
+      SMTP_HOST: "mailpit"
+      SMTP_PORT: "1025"
+      SMTP_FROM: "notifier@example.com"
+      ADMIN_API_KEY: "admin-key-change-me"
+      WORKER_COUNT: "5"
+      MAX_RETRIES: "3"
+    depends_on:
+      mailpit:
+        condition: service_started
+    # networks:
+    #   - shared
+
+# networks:
+#   shared:
+#     external: true
+#     name: <your-network-name>

@@ -1,0 +1,20 @@
+# Go
+server/bin/
+server/tmp/
+server/notifier
+server/notifier.exe
+
+# Node
+client/node_modules/
+client/dist/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+.env

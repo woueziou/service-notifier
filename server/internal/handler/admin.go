@@ -4,17 +4,27 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/flyasky/notifier/internal/repository"
 	"github.com/go-chi/chi/v5"
 	"github.com/redis/go-redis/v9"
 )
 
 type AdminHandler struct {
-	rdb       *redis.Client
-	dlqStream string
+	rdb          *redis.Client
+	dlqStream    string
+	jobStream    string
+	jobRepo      *repository.JobRepo
+	consumerRepo *repository.ConsumerRepo
 }
 
-func NewAdminHandler(rdb *redis.Client, dlqStream string) *AdminHandler {
-	return &AdminHandler{rdb: rdb, dlqStream: dlqStream}
+func NewAdminHandler(rdb *redis.Client, dlqStream, jobStream string, jobRepo *repository.JobRepo, consumerRepo *repository.ConsumerRepo) *AdminHandler {
+	return &AdminHandler{
+		rdb:          rdb,
+		dlqStream:    dlqStream,
+		jobStream:    jobStream,
+		jobRepo:      jobRepo,
+		consumerRepo: consumerRepo,
+	}
 }
 
 // ListDLQ returns entries from the dead letter queue.
@@ -61,6 +71,48 @@ func (h *AdminHandler) ListDLQ(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, result)
 }
 
+// ListJobs returns jobs with optional filtering and pagination.
+// @Summary      List jobs
+// @Description  Get all jobs with optional filtering by consumer and status
+// @Tags         admin
+// @Produce      json
+// @Param        consumer_id  query  string  false  "Filter by consumer ID"
+// @Param        status       query  string  false  "Filter by status (pending, delivered, failed, bounced)"
+// @Param        limit        query  int     false  "Page size (default: 50)"
+// @Param        offset       query  int     false  "Offset (default: 0)"
+// @Success      200  {object}  map[string]interface{}
+// @Router       /admin/jobs [get]
+func (h *AdminHandler) ListJobs(w http.ResponseWriter, r *http.Request) {
+	consumerID := r.URL.Query().Get("consumer_id")
+	status := r.URL.Query().Get("status")
+	limit := 50
+	offset := 0
+
+	if l := r.URL.Query().Get("limit"); l != "" {
+		if parsed, err := strconv.Atoi(l); err == nil && parsed > 0 && parsed <= 200 {
+			limit = parsed
+		}
+	}
+	if o := r.URL.Query().Get("offset"); o != "" {
+		if parsed, err := strconv.Atoi(o); err == nil && parsed >= 0 {
+			offset = parsed
+		}
+	}
+
+	jobs, total, err := h.jobRepo.ListAll(r.Context(), consumerID, status, limit, offset)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]interface{}{
+		"jobs":   jobs,
+		"total":  total,
+		"limit":  limit,
+		"offset": offset,
+	})
+}
+
 // ReplayDLQ re-enqueues a DLQ message back to the main stream.
 // @Summary      Replay a dead letter
 // @Description  Re-enqueue a message from DLQ to the main job stream
@@ -89,15 +141,50 @@ func (h *AdminHandler) ReplayDLQ(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.rdb.XAdd(r.Context(), &redis.XAddArgs{
-		Stream: h.dlqStream, // replay back to the same DLQ for now
+		Stream: h.jobStream,
 		Values: values,
 	}).Err(); err != nil {
 		writeError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
+	// Remove from DLQ
+	h.rdb.XDel(r.Context(), h.dlqStream, msgID)
+
 	writeJSON(w, http.StatusOK, map[string]string{
 		"status":  "replayed",
-		"message": "re-enqueued to " + h.dlqStream,
+		"message": "re-enqueued to " + h.jobStream,
 	})
+}
+
+// SuspendConsumer marks a consumer as suspended.
+// @Summary      Suspend a consumer
+// @Description  Suspend a consumer (prevents further email sending)
+// @Tags         admin
+// @Param        id  path  string  true  "Consumer ID"
+// @Success      200  {object}  map[string]string
+// @Router       /admin/consumers/{id}/suspend [post]
+func (h *AdminHandler) SuspendConsumer(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if err := h.consumerRepo.Suspend(r.Context(), id, "manual admin action"); err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]string{"status": "suspended"})
+}
+
+// ReactivateConsumer reactivates a previously suspended consumer.
+// @Summary      Reactivate a consumer
+// @Description  Reactivate a suspended consumer
+// @Tags         admin
+// @Param        id  path  string  true  "Consumer ID"
+// @Success      200  {object}  map[string]string
+// @Router       /admin/consumers/{id}/reactivate [post]
+func (h *AdminHandler) ReactivateConsumer(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	if err := h.consumerRepo.Reactivate(r.Context(), id); err != nil {
+		writeError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]string{"status": "reactivated"})
 }

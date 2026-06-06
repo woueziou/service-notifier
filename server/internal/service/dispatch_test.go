@@ -1,6 +1,7 @@
 package service
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/flyasky/notifier/internal/model"
@@ -50,7 +51,6 @@ func TestMustMarshalJSON_Panics(t *testing.T) {
 }
 
 func TestModelJSONRoundtrip(t *testing.T) {
-	// Verify that model types serialize/deserialize correctly
 	job := model.Job{
 		ID:         "j-123",
 		ConsumerID: "c-456",
@@ -59,13 +59,13 @@ func TestModelJSONRoundtrip(t *testing.T) {
 		Subject:    "Test",
 	}
 
-	data, err := model.MarshalJob(job)
+	data, err := json.Marshal(job)
 	if err != nil {
 		t.Fatalf("failed to marshal job: %v", err)
 	}
 
 	var decoded model.Job
-	if err := model.UnmarshalJob(data, &decoded); err != nil {
+	if err := json.Unmarshal(data, &decoded); err != nil {
 		t.Fatalf("failed to unmarshal job: %v", err)
 	}
 

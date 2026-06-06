@@ -5,12 +5,16 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"os/signal"
+	"sync"
+	"syscall"
 
 	"github.com/flyasky/notifier/internal/config"
 	"github.com/flyasky/notifier/internal/engine"
 	"github.com/flyasky/notifier/internal/model"
 	"github.com/flyasky/notifier/internal/repository"
 	"github.com/flyasky/notifier/internal/server"
+	"github.com/flyasky/notifier/internal/service"
 	"github.com/flyasky/notifier/internal/worker"
 )
 
@@ -64,8 +68,8 @@ func main() {
 	slog.Info("connected to redis")
 
 	// Ensure Redis stream and consumer group exist
-	ctx := context.Background()
-	if err := server.EnsureStreamGroup(ctx, rdb, cfg.StreamName, cfg.StreamConsumerGroup); err != nil {
+	bgCtx := context.Background()
+	if err := server.EnsureStreamGroup(bgCtx, rdb, cfg.StreamName, cfg.StreamConsumerGroup); err != nil {
 		slog.Error("failed to create consumer group", "error", err)
 		os.Exit(1)
 	}
@@ -93,13 +97,29 @@ func main() {
 	handlers := server.NewHandlers(db, rdb, adapter)
 	consumerRepo := repository.NewConsumerRepo(db)
 	auditRepo := repository.NewAuditRepo(db)
-	router := server.NewRouter(handlers, consumerRepo, auditRepo, adapter)
+	rateLimiter := service.NewRateLimiter(rdb)
+	router := server.NewRouter(handlers, consumerRepo, auditRepo, rateLimiter, adapter)
+
+	// --- Graceful Shutdown Setup ---
+	//
+	// On SIGINT/SIGTERM:
+	//   1. Cancel worker context → workers finish current message → exit
+	//   2. HTTP server shuts down (no new requests)
+	//   3. Wait for all workers to finish
+	//   4. Close Redis, DB connections
+	//   5. Exit
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	var wg sync.WaitGroup
 
 	// Start workers
 	jobRepo := repository.NewJobRepo(db)
 	for i := range cfg.WorkerCount {
+		workerID := fmt.Sprintf("%s-worker-%d", cfg.ContainerID, i)
 		w := worker.New(
-			fmt.Sprintf("%s-worker-%d", cfg.ContainerID, i),
+			workerID,
 			rdb,
 			smtpEngine,
 			jobRepo,
@@ -108,16 +128,55 @@ func main() {
 			cfg.DLQStreamName,
 			cfg.MaxRetries,
 		)
-		go w.Run(ctx)
+		wg.Add(1)
+		go func(id string) {
+			defer wg.Done()
+			slog.Info("worker starting", "id", id)
+			w.Run(ctx)
+			slog.Info("worker stopped", "id", id)
+		}(workerID)
 	}
 	slog.Info("workers started", "count", cfg.WorkerCount)
 
-	// Start HTTP server
+	// Start abuse detector
+	abuseCfg := service.DefaultAbuseConfig()
+	abuseDetector := service.NewAbuseDetector(jobRepo, consumerRepo, abuseCfg)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		abuseDetector.Run(ctx)
+	}()
+	slog.Info("abuse detector started", "interval", abuseCfg.CheckInterval)
+
+	// Start HTTP server (with graceful shutdown)
 	srv := server.New(adapter, db, rdb, router)
+
+	// Listen for interrupt signals
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+
+	go func() {
+		sig := <-sigCh
+		slog.Info("shutdown signal received", "signal", sig)
+
+		// Step 1: Stop accepting new work
+		cancel()
+
+		// Step 2: Graceful HTTP shutdown
+		if err := srv.Shutdown(context.Background()); err != nil {
+			slog.Error("http shutdown error", "error", err)
+		}
+	}()
+
+	// Block until HTTP server stops (either by error or by shutdown signal)
 	if err := srv.Start(cfg.Port); err != nil {
 		slog.Error("server error", "error", err)
-		os.Exit(1)
 	}
+
+	// Wait for all workers to finish their current message
+	slog.Info("waiting for workers to finish...")
+	wg.Wait()
+	slog.Info("all workers stopped, goodbye")
 }
 
 func extractDomain(from string) string {

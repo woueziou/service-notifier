@@ -11,6 +11,7 @@ import (
 	"github.com/flyasky/notifier/internal/handler"
 	"github.com/flyasky/notifier/internal/model"
 	"github.com/flyasky/notifier/internal/repository"
+	"github.com/flyasky/notifier/internal/service"
 )
 
 // AuthMiddleware validates Bearer tokens against stored hashes.
@@ -121,4 +122,72 @@ type statusWriter struct {
 func (sw *statusWriter) WriteHeader(code int) {
 	sw.status = code
 	sw.ResponseWriter.WriteHeader(code)
+}
+
+// RateLimitMiddleware enforces per-consumer rate limits.
+// Default: 60 requests/minute per consumer.
+func RateLimitMiddleware(rl *service.RateLimiter, maxPerMinute int) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			consumer, ok := r.Context().Value(handler.ConsumerContextKey).(*model.Consumer)
+			if !ok {
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			allowed, err := rl.Allow(r.Context(), consumer.ID, maxPerMinute)
+			if err != nil {
+				slog.Error("rate limit check failed", "consumer_id", consumer.ID, "error", err)
+				// Allow on error (fail open)
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			if !allowed {
+				w.Header().Set("Retry-After", "60")
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusTooManyRequests)
+				w.Write([]byte(`{"error":"Too Many Requests","message":"rate limit exceeded. Try again in 60 seconds."}`))
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
+// IPRateLimitMiddleware enforces per-IP rate limits for DDoS protection.
+func IPRateLimitMiddleware(rl *service.RateLimiter, maxPerMinute int) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ip := extractIP(r)
+
+			allowed, err := rl.Allow(r.Context(), "ip:"+ip, maxPerMinute)
+			if err != nil {
+				slog.Error("ip rate limit check failed", "ip", ip, "error", err)
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			if !allowed {
+				w.Header().Set("Retry-After", "60")
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusTooManyRequests)
+				w.Write([]byte(`{"error":"Too Many Requests","message":"IP rate limit exceeded."}`))
+				return
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
+// BodySizeLimitMiddleware limits the maximum request body size.
+func BodySizeLimitMiddleware(maxBytes int64) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			r.Body = http.MaxBytesReader(w, r.Body, maxBytes)
+			next.ServeHTTP(w, r)
+		})
+	}
 }

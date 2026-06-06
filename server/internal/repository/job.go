@@ -42,6 +42,31 @@ func (r *JobRepo) ListByConsumer(ctx context.Context, consumerID string, limit, 
 	return jobs, nil
 }
 
+func (r *JobRepo) ListAll(ctx context.Context, consumerID, status string, limit, offset int) ([]model.Job, int64, error) {
+	var jobs []model.Job
+	query := r.db.WithContext(ctx).Model(&model.Job{})
+
+	if consumerID != "" {
+		query = query.Where("consumer_id = ?", consumerID)
+	}
+	if status != "" {
+		query = query.Where("status = ?", status)
+	}
+
+	// Count total
+	var total int64
+	if err := query.Count(&total).Error; err != nil {
+		return nil, 0, fmt.Errorf("count jobs: %w", err)
+	}
+
+	// Fetch page
+	if err := query.Order("created_at DESC").Limit(limit).Offset(offset).Find(&jobs).Error; err != nil {
+		return nil, 0, fmt.Errorf("list jobs: %w", err)
+	}
+
+	return jobs, total, nil
+}
+
 func (r *JobRepo) MarkDelivered(ctx context.Context, id string) error {
 	now := time.Now()
 	if err := r.db.WithContext(ctx).Model(&model.Job{}).
@@ -65,4 +90,27 @@ func (r *JobRepo) MarkFailed(ctx context.Context, id, errMsg string) error {
 		return fmt.Errorf("mark failed: %w", err)
 	}
 	return nil
+}
+
+// GetBounceRate returns the bounce rate (failed / total) and total job count for a consumer.
+func (r *JobRepo) GetBounceRate(ctx context.Context, consumerID string) (float64, int64, error) {
+	var total int64
+	if err := r.db.WithContext(ctx).Model(&model.Job{}).
+		Where("consumer_id = ?", consumerID).
+		Count(&total).Error; err != nil {
+		return 0, 0, fmt.Errorf("count jobs: %w", err)
+	}
+
+	if total == 0 {
+		return 0, 0, nil
+	}
+
+	var failed int64
+	if err := r.db.WithContext(ctx).Model(&model.Job{}).
+		Where("consumer_id = ? AND status IN ?", consumerID, []model.JobStatus{model.JobStatusFailed, model.JobStatusBounced}).
+		Count(&failed).Error; err != nil {
+		return 0, 0, fmt.Errorf("count failed: %w", err)
+	}
+
+	return float64(failed) / float64(total), total, nil
 }

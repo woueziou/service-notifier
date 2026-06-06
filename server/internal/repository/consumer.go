@@ -56,3 +56,21 @@ func (r *ConsumerRepo) Authenticate(ctx context.Context, rawKey string) (*model.
 	}
 	return &consumer, nil
 }
+
+func (r *ConsumerRepo) Suspend(ctx context.Context, id, reason string) error {
+	return r.db.WithContext(ctx).Model(&model.Consumer{}).
+		Where("id = ?", id).
+		Updates(map[string]interface{}{
+			"suspended": true,
+			"active":    false,
+		}).Error
+}
+
+func (r *ConsumerRepo) Reactivate(ctx context.Context, id string) error {
+	return r.db.WithContext(ctx).Model(&model.Consumer{}).
+		Where("id = ?", id).
+		Updates(map[string]interface{}{
+			"suspended": false,
+			"active":    true,
+		}).Error
+}

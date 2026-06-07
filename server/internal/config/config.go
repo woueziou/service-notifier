@@ -27,8 +27,9 @@ type Config struct {
 	SMTPPassword string `env:"SMTP_PASSWORD" envDefault:""`
 	SMTPFrom     string `env:"SMTP_FROM" envDefault:"notifier@localhost"`
 
-	// Admin
-	AdminAPIKey string `env:"ADMIN_API_KEY" envDefault:"admin-key-change-me"`
+	// Admin session auth
+	AdminDefaultUsername string `env:"ADMIN_DEFAULT_USERNAME" envDefault:"admin"`
+	AdminDefaultPassword string `env:"ADMIN_DEFAULT_PASSWORD" envDefault:""`
 
 	// Worker
 	WorkerCount int    `env:"WORKER_COUNT" envDefault:"5"`

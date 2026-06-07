@@ -68,5 +68,6 @@
   "sources/obs-2026-06-07-migrated-from-chi-to-fuego-with-modular-architecture": [],
   "sources/obs-2026-06-07-phase-4-frontend-pages-built": [],
   "sources/obs-2026-06-07-rate-limit-and-abuse-stats-page-added": [],
-  "sources/obs-2026-06-07-redis-queue-depth-and-dlq-depth-gauges-wired": []
+  "sources/obs-2026-06-07-redis-queue-depth-and-dlq-depth-gauges-wired": [],
+  "sources/obs-2026-06-07-session-based-admin-auth-implemented": []
 }

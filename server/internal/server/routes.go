@@ -14,7 +14,6 @@ import (
 
 // ConfigAdapter bridges config values between main.go and the server setup.
 type ConfigAdapter struct {
-	AdminKey       string
 	StreamName     string
 	DLQStream      string
 	MaxRetries     int
@@ -86,9 +85,13 @@ func NewFuegoServer(db *gorm.DB, rdb *redis.Client, cfg *ConfigAdapter) *fuego.S
 	dispatchModule := handler.NewDispatchModule(dispatchSvc)
 	dispatchModule.Register(s, dispatchAuth...)
 
-	// Admin (admin API key auth)
+	// Auth (session-based, no admin middleware)
+	authModule := handler.NewAuthModule(repository.NewAdminUserRepo(db), rdb)
+	authModule.Register(s)
+
+	// Admin (session auth via cookie)
 	adminAuth := []func(http.Handler) http.Handler{
-		AdminAuthMiddleware(cfg.AdminKey),
+		handler.SessionAuthMiddleware(rdb),
 	}
 	consumerModule := handler.NewConsumerModule(consumerSvc, cfg.SenderDomain)
 	consumerModule.Register(s, adminAuth...)

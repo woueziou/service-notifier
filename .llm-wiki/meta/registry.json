@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "last_updated": "2026-06-07T14:54:37.026Z",
+  "last_updated": "2026-06-07T18:11:03.794Z",
   "pages": {
     "concepts/abuse-detection-anti-spam": {
       "type": "concept",
@@ -247,6 +247,23 @@
         "streams"
       ],
       "source_context": "\"Phase 3 — Redis stream queue depth and DLQ depth gauges\""
+    },
+    "sources/obs-2026-06-07-session-based-admin-auth-implemented": {
+      "type": "source",
+      "title": "\"Observation: Session-based admin auth implemented\"",
+      "created": "2026-06-07",
+      "updated": "2026-06-07",
+      "slug": "obs-2026-06-07-session-based-admin-auth-implemented",
+      "status": "observation",
+      "relevance": "high",
+      "observed_at": "2026-06-07T18:11:03.785Z",
+      "tags": [
+        "auth",
+        "backend",
+        "frontend",
+        "session"
+      ],
+      "source_context": "\"Implementing username/password auth for admin dashboard\""
     }
   }
 }

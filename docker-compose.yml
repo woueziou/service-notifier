@@ -20,19 +20,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
-    environment:
-      PORT: "8080"
-      DATABASE_URL: "postgres://postgres:P0stgr3s_Pssw0rd_2024@postgres:5432/notifier?sslmode=disable"
-      REDIS_HOST: "redis"
-      REDIS_PORT: "6379"
-      REDIS_PASSWORD: "Rd1s_P@ssw0rd_2024"
-      REDIS_DB: "0"
-      SMTP_HOST: "mailpit"
-      SMTP_PORT: "1025"
-      SMTP_FROM: "notifier@example.com"
-      ADMIN_API_KEY: "admin-key-change-me"
-      WORKER_COUNT: "5"
-      MAX_RETRIES: "3"
+    env_file:
+      - .env
     depends_on:
       mailpit:
         condition: service_started

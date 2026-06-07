@@ -57,3 +57,6 @@
 ## [2026-06-07T14:54:37.019Z] observe
 - slug: "obs-2026-06-07-chi-removed-from-codebase", title: "Chi removed from codebase", relevance: "high"
 
+## [2026-06-07T18:11:03.786Z] observe
+- slug: "obs-2026-06-07-session-based-admin-auth-implemented", title: "Session-based admin auth implemented", relevance: "high"
+

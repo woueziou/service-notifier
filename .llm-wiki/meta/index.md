@@ -27,8 +27,9 @@
 - [[sources/obs-2026-06-07-phase-4-frontend-pages-built]] — "Observation: Phase 4 frontend pages built" *(created: 2026-06-07)*
 - [[sources/obs-2026-06-07-rate-limit-and-abuse-stats-page-added]] — "Observation: Rate limit and abuse stats page added" *(created: 2026-06-07)*
 - [[sources/obs-2026-06-07-redis-queue-depth-and-dlq-depth-gauges-wired]] — "Observation: Redis queue depth and DLQ depth gauges wired" *(created: 2026-06-07)*
+- [[sources/obs-2026-06-07-session-based-admin-auth-implemented]] — "Observation: Session-based admin auth implemented" *(created: 2026-06-07)*
 - [[sources/SRC-2026-06-06-001]] — SRC-2026-06-06-001 *(created: 2026-06-07)*
 - [[sources/SRC-2026-06-06-002]] — SRC-2026-06-06-002 *(created: 2026-06-07)*
 
 ---
-*Last updated: 2026-06-07T14:54:37.026Z* | *Total pages: 19*
+*Last updated: 2026-06-07T18:11:03.794Z* | *Total pages: 20*

@@ -1,18 +1,74 @@
 const API_BASE = import.meta.env.VITE_API_URL || "/api"
-const ADMIN_KEY = import.meta.env.VITE_ADMIN_KEY || "admin-key-change-me"
 
+/**
+ * Base API fetch with cookie-based session auth.
+ * On 401, redirects to /login.
+ */
 export async function api<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
     ...options,
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${ADMIN_KEY}`,
       ...options?.headers,
     },
   })
+  if (res.status === 401) {
+    // Session expired or not logged in — redirect to login
+    window.location.href = "/login"
+    throw new Error("Session expired")
+  }
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
     throw new Error(err.message || `HTTP ${res.status}`)
+  }
+  return res.json()
+}
+
+// --- Auth ---
+
+export interface LoginRequest {
+  username: string
+  password: string
+}
+
+export interface LoginResponse {
+  username: string
+  created_at: string
+}
+
+export interface MeResponse {
+  username: string
+  created_at: string
+}
+
+export async function login(data: LoginRequest): Promise<LoginResponse> {
+  const res = await fetch(`${API_BASE}/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+    credentials: "include",
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(err.message || `Login failed (${res.status})`)
+  }
+  return res.json()
+}
+
+export async function logout(): Promise<void> {
+  await fetch(`${API_BASE}/auth/logout`, {
+    method: "POST",
+    credentials: "include",
+  })
+}
+
+export async function whoami(): Promise<MeResponse> {
+  const res = await fetch(`${API_BASE}/auth/me`, {
+    credentials: "include",
+  })
+  if (!res.ok) {
+    throw new Error("Not authenticated")
   }
   return res.json()
 }

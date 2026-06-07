@@ -18,6 +18,8 @@ import (
 	"woueziou/notifier/internal/service"
 	"woueziou/notifier/internal/worker"
 
+	"gorm.io/gorm"
+
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -52,7 +54,7 @@ func main() {
 		}
 		slog.Info("database migrations complete")
 	} else {
-		if err := db.AutoMigrate(&model.Consumer{}, &model.Job{}, &model.AuditLog{}); err != nil {
+		if err := db.AutoMigrate(&model.Consumer{}, &model.Job{}, &model.AuditLog{}, &model.AdminUser{}); err != nil {
 			slog.Error("failed to auto-migrate database", "error", err)
 			os.Exit(1)
 		}
@@ -86,10 +88,15 @@ func main() {
 		os.Exit(1)
 	}
 
+	// --- Seed default admin user ---
+	if err := seedAdmin(db, cfg.AdminDefaultUsername, cfg.AdminDefaultPassword); err != nil {
+		slog.Error("failed to seed admin user", "error", err)
+		os.Exit(1)
+	}
+
 	// --- Build fuego server ---
 	senderDomain := extractDomain(cfg.SMTPFrom)
 	adapter := &server.ConfigAdapter{
-		AdminKey:       cfg.AdminAPIKey,
 		StreamName:     cfg.StreamName,
 		DLQStream:      cfg.DLQStreamName,
 		MaxRetries:     cfg.MaxRetries,
@@ -171,6 +178,32 @@ func extractDomain(from string) string {
 		}
 	}
 	return "localhost"
+}
+
+func seedAdmin(db *gorm.DB, username, password string) error {
+	if password == "" {
+		slog.Warn("ADMIN_DEFAULT_PASSWORD not set — no admin user seeded")
+		return nil
+	}
+
+	repo := repository.NewAdminUserRepo(db)
+	ctx := context.Background()
+
+	count, err := repo.Count(ctx)
+	if err != nil {
+		return fmt.Errorf("check admin users: %w", err)
+	}
+	if count > 0 {
+		slog.Info("admin user already exists, skipping seed")
+		return nil
+	}
+
+	user, err := repo.Create(ctx, username, password)
+	if err != nil {
+		return fmt.Errorf("create admin user: %w", err)
+	}
+	slog.Info("default admin user created", "username", user.Username)
+	return nil
 }
 
 func initSecretProvider(masterKey string) (repository.HMACSecretProvider, error) {

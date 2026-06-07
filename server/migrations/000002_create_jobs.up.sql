@@ -2,7 +2,7 @@ CREATE TABLE jobs (
     id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     consumer_id  UUID NOT NULL REFERENCES consumers(id) ON DELETE CASCADE,
     status       VARCHAR(20) NOT NULL DEFAULT 'pending',
-    to           TEXT NOT NULL,
+    "to"        TEXT NOT NULL,
     subject      VARCHAR(998),
     body         TEXT,
     error        TEXT,

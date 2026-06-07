@@ -1,0 +1,9 @@
+{
+  "id": "SRC-2026-06-06-002",
+  "captured": "2026-06-06",
+  "packet_version": "1.0",
+  "title": "HMAC request signing pattern",
+  "format": "text",
+  "extractor": "passthrough",
+  "extraction_status": "success"
+}

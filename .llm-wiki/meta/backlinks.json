@@ -1,0 +1,74 @@
+{
+  "concepts/abuse-detection-anti-spam": [
+    "concepts/api-key-based-authentication",
+    "concepts/api-key-rotation",
+    "concepts/single-source-of-truth-notification-dispatch",
+    "entities/consumer",
+    "entities/notifier",
+    "sources/SRC-2026-06-06-002"
+  ],
+  "concepts/api-key-based-authentication": [
+    "concepts/api-key-rotation",
+    "concepts/hmac-request-signing",
+    "concepts/single-source-of-truth-notification-dispatch",
+    "entities/consumer",
+    "entities/notifier",
+    "sources/SRC-2026-06-06-002"
+  ],
+  "concepts/api-key-rotation": [
+    "concepts/api-key-based-authentication",
+    "concepts/hmac-request-signing",
+    "concepts/single-source-of-truth-notification-dispatch",
+    "entities/consumer",
+    "entities/notifier",
+    "sources/SRC-2026-06-06-002"
+  ],
+  "concepts/hmac-request-signing": [
+    "concepts/api-key-rotation",
+    "sources/SRC-2026-06-06-002"
+  ],
+  "concepts/job-status-tracking": [
+    "concepts/api-key-rotation",
+    "concepts/single-source-of-truth-notification-dispatch",
+    "entities/consumer",
+    "entities/notifier"
+  ],
+  "concepts/single-source-of-truth-notification-dispatch": [
+    "concepts/api-key-rotation",
+    "entities/notifier"
+  ],
+  "entities/consumer": [],
+  "entities/notifier": [
+    "concepts/api-key-based-authentication",
+    "concepts/api-key-rotation",
+    "concepts/hmac-request-signing",
+    "concepts/single-source-of-truth-notification-dispatch",
+    "entities/consumer",
+    "sources/SRC-2026-06-06-002"
+  ],
+  "sources/SRC-2026-06-06-001": [
+    "concepts/abuse-detection-anti-spam",
+    "concepts/api-key-based-authentication",
+    "concepts/api-key-rotation",
+    "concepts/job-status-tracking",
+    "concepts/single-source-of-truth-notification-dispatch",
+    "entities/consumer",
+    "entities/notifier",
+    "sources/SRC-2026-06-06-001"
+  ],
+  "sources/SRC-2026-06-06-002": [
+    "concepts/hmac-request-signing",
+    "sources/SRC-2026-06-06-002"
+  ],
+  "sources/obs-2026-06-06-api-key-rotation-concept-added": [],
+  "sources/obs-2026-06-06-hmac-request-signing-implemented": [],
+  "sources/obs-2026-06-06-wiki-cross-linking-improved": [],
+  "sources/obs-2026-06-07-chi-removed-from-codebase": [],
+  "sources/obs-2026-06-07-email-based-admin-auth-with-rbac-implemented": [],
+  "sources/obs-2026-06-07-go-module-renamed-to-woueziou-notifier": [],
+  "sources/obs-2026-06-07-migrated-from-chi-to-fuego-with-modular-architecture": [],
+  "sources/obs-2026-06-07-phase-4-frontend-pages-built": [],
+  "sources/obs-2026-06-07-rate-limit-and-abuse-stats-page-added": [],
+  "sources/obs-2026-06-07-redis-queue-depth-and-dlq-depth-gauges-wired": [],
+  "sources/obs-2026-06-07-session-based-admin-auth-implemented": []
+}

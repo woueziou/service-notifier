@@ -2,25 +2,121 @@ package server
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
+	"encoding/json"
+	"fmt"
+	"io"
 	"log/slog"
 	"net"
 	"net/http"
+	"runtime/debug"
+	"strconv"
 	"strings"
 	"time"
 
-	"github.com/flyasky/notifier/internal/handler"
-	"github.com/flyasky/notifier/internal/model"
-	"github.com/flyasky/notifier/internal/repository"
-	"github.com/flyasky/notifier/internal/service"
+	"woueziou/notifier/internal/auth"
+	"woueziou/notifier/internal/handler"
+	"woueziou/notifier/internal/model"
+	"woueziou/notifier/internal/repository"
+	"woueziou/notifier/internal/service"
 )
 
-// AuthMiddleware validates Bearer tokens against stored hashes.
-func AuthMiddleware(repo *repository.ConsumerRepo) func(http.Handler) http.Handler {
+// --- Custom context keys ---
+type ctxKey string
+
+const reqIDKey ctxKey = "request_id"
+
+// --- Middleware: Request ID --------------------------------------------------
+
+// RequestIDMiddleware reads or generates a unique request ID and stores it
+// in the context and response header.
+func RequestIDMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		id := r.Header.Get("X-Request-Id")
+		if id == "" {
+			id = generateID()
+		}
+		w.Header().Set("X-Request-Id", id)
+		ctx := context.WithValue(r.Context(), reqIDKey, id)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+// GetRequestID retrieves the request ID from the context.
+func GetRequestID(ctx context.Context) string {
+	if id, ok := ctx.Value(reqIDKey).(string); ok {
+		return id
+	}
+	return ""
+}
+
+func generateID() string {
+	b := make([]byte, 16)
+	if _, err := rand.Read(b); err != nil {
+		return fmt.Sprintf("%d", time.Now().UnixNano())
+	}
+	return hex.EncodeToString(b)
+}
+
+// --- Middleware: Real IP -----------------------------------------------------
+
+// RealIPMiddleware parses X-Forwarded-For and X-Real-IP headers and updates
+// the request's RemoteAddr.
+func RealIPMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
+			parts := strings.Split(xff, ",")
+			r.RemoteAddr = strings.TrimSpace(parts[0])
+		} else if xri := r.Header.Get("X-Real-Ip"); xri != "" {
+			r.RemoteAddr = xri
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+// --- Middleware: Panic Recovery ----------------------------------------------
+
+// RecoveryMiddleware recovers from panics, logs the stack trace, and returns 500.
+func RecoveryMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if rec := recover(); rec != nil {
+				err, ok := rec.(error)
+				if !ok {
+					err = fmt.Errorf("%v", rec)
+				}
+				slog.Error("panic recovered",
+					"error", err,
+					"stack", string(debug.Stack()),
+					"request_id", GetRequestID(r.Context()),
+				)
+				http.Error(w, `{"error":"Internal Server Error"}`, http.StatusInternalServerError)
+			}
+		}()
+		next.ServeHTTP(w, r)
+	})
+}
+
+// --- Auth Middleware ---------------------------------------------------------
+
+// AuthMiddleware authenticates requests using either:
+//  1. HMAC request signing (X-Consumer-ID, X-Timestamp, X-Signature headers), or
+//  2. Bearer token (Authorization: Bearer <api-key>)
+//
+// HMAC is attempted first; if HMAC headers are present, Bearer fallback is skipped.
+func AuthMiddleware(repo *repository.ConsumerRepo, secretProvider repository.HMACSecretProvider) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			consumerID := r.Header.Get("X-Consumer-ID")
+			if consumerID != "" {
+				authenticateHMAC(w, r, repo, secretProvider, next)
+				return
+			}
+
 			token := r.Header.Get("Authorization")
 			if !strings.HasPrefix(token, "Bearer ") {
-				http.Error(w, `{"error":"unauthorized","message":"missing authorization header"}`, http.StatusUnauthorized)
+				http.Error(w, `{"error":"unauthorized","message":"missing authorization or HMAC headers"}`, http.StatusUnauthorized)
 				return
 			}
 			rawKey := strings.TrimPrefix(token, "Bearer ")
@@ -37,6 +133,58 @@ func AuthMiddleware(repo *repository.ConsumerRepo) func(http.Handler) http.Handl
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
+}
+
+func authenticateHMAC(w http.ResponseWriter, r *http.Request, repo *repository.ConsumerRepo, secretProvider repository.HMACSecretProvider, next http.Handler) {
+	consumerID := r.Header.Get("X-Consumer-ID")
+	timestampStr := r.Header.Get("X-Timestamp")
+	signature := r.Header.Get("X-Signature")
+
+	if consumerID == "" || timestampStr == "" || signature == "" {
+		http.Error(w, `{"error":"unauthorized","message":"missing HMAC headers"}`, http.StatusUnauthorized)
+		return
+	}
+
+	timestamp, err := strconv.ParseInt(timestampStr, 10, 64)
+	if err != nil {
+		http.Error(w, `{"error":"unauthorized","message":"invalid timestamp"}`, http.StatusUnauthorized)
+		return
+	}
+
+	if !auth.CheckTimestamp(timestamp, auth.DefaultMaxClockSkew) {
+		http.Error(w, `{"error":"unauthorized","message":"request expired or clock skew too large"}`, http.StatusUnauthorized)
+		return
+	}
+
+	bodyBytes, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, `{"error":"unauthorized","message":"cannot read request body"}`, http.StatusUnauthorized)
+		return
+	}
+	r.Body = io.NopCloser(strings.NewReader(string(bodyBytes)))
+
+	var bodyJSON interface{}
+	if len(bodyBytes) > 0 {
+		if err := json.Unmarshal(bodyBytes, &bodyJSON); err != nil {
+			bodyJSON = bodyBytes
+		}
+	} else {
+		bodyJSON = ""
+	}
+
+	consumer, err := repo.AuthenticateHMAC(r.Context(), consumerID, timestamp, bodyJSON, signature, secretProvider)
+	if err != nil {
+		http.Error(w, `{"error":"unauthorized","message":"invalid HMAC signature"}`, http.StatusUnauthorized)
+		return
+	}
+
+	if consumer.Suspended {
+		http.Error(w, `{"error":"forbidden","message":"consumer is suspended"}`, http.StatusForbidden)
+		return
+	}
+
+	ctx := context.WithValue(r.Context(), handler.ConsumerContextKey, consumer)
+	next.ServeHTTP(w, r.WithContext(ctx))
 }
 
 // AdminAuthMiddleware validates the admin API key for admin routes.
@@ -57,6 +205,8 @@ func AdminAuthMiddleware(adminKey string) func(http.Handler) http.Handler {
 		})
 	}
 }
+
+// --- Audit ------------------------------------------------------------------
 
 // AuditMiddleware logs API requests to the audit log.
 func AuditMiddleware(auditRepo *repository.AuditRepo) func(http.Handler) http.Handler {
@@ -84,6 +234,8 @@ func AuditMiddleware(auditRepo *repository.AuditRepo) func(http.Handler) http.Ha
 	}
 }
 
+// --- Logger -----------------------------------------------------------------
+
 // LoggerMiddleware logs incoming requests.
 func LoggerMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -98,6 +250,8 @@ func LoggerMiddleware(next http.Handler) http.Handler {
 		)
 	})
 }
+
+// --- Helpers ----------------------------------------------------------------
 
 func extractIP(r *http.Request) string {
 	if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
@@ -124,8 +278,9 @@ func (sw *statusWriter) WriteHeader(code int) {
 	sw.ResponseWriter.WriteHeader(code)
 }
 
+// --- Rate Limiting ----------------------------------------------------------
+
 // RateLimitMiddleware enforces per-consumer rate limits.
-// Default: 60 requests/minute per consumer.
 func RateLimitMiddleware(rl *service.RateLimiter, maxPerMinute int) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -138,7 +293,6 @@ func RateLimitMiddleware(rl *service.RateLimiter, maxPerMinute int) func(http.Ha
 			allowed, err := rl.Allow(r.Context(), consumer.ID, maxPerMinute)
 			if err != nil {
 				slog.Error("rate limit check failed", "consumer_id", consumer.ID, "error", err)
-				// Allow on error (fail open)
 				next.ServeHTTP(w, r)
 				return
 			}

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/flyasky/notifier/internal/model"
+	"woueziou/notifier/internal/model"
 	"gorm.io/gorm"
 )
 

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/flyasky/notifier/internal/model"
+	"woueziou/notifier/internal/model"
 	"gorm.io/gorm"
 )
 

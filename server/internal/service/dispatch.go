@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/flyasky/notifier/internal/model"
-	"github.com/flyasky/notifier/internal/repository"
+	"woueziou/notifier/internal/model"
+	"woueziou/notifier/internal/repository"
 	"github.com/redis/go-redis/v9"
 )
 

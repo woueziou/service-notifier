@@ -39,9 +39,8 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-    # Uncomment if postgres and redis are on a custom Docker network:
-    # networks:
-    #   - notifier-net
+    networks:
+      - dokploy-network
 
 networks:
   dokploy-network:

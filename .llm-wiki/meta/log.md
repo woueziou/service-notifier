@@ -51,3 +51,9 @@
 ## [2026-06-07T13:23:00.722Z] observe
 - slug: "obs-2026-06-07-migrated-from-chi-to-fuego-with-modular-architecture", title: "Migrated from chi to Fuego with modular architecture", relevance: "high"
 
+## [2026-06-07T14:48:34.120Z] observe
+- slug: "obs-2026-06-07-go-module-renamed-to-woueziou-notifier", title: "Go module renamed to woueziou/notifier", relevance: "medium"
+
+## [2026-06-07T14:54:37.019Z] observe
+- slug: "obs-2026-06-07-chi-removed-from-codebase", title: "Chi removed from codebase", relevance: "high"
+

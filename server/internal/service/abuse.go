@@ -5,30 +5,29 @@ import (
 	"fmt"
 	"log/slog"
 	"time"
-
 	"woueziou/notifier/internal/repository"
 )
 
 // AbuseConfig defines thresholds for automatic consumer suspension.
 type AbuseConfig struct {
 	MaxBounceRate    float64 // e.g., 0.2 = 20% bounce rate triggers suspension
-	MinJobsForBounce int    // Minimum jobs before bounce rate is evaluated (avoid false positives)
+	MinJobsForBounce int     // Minimum jobs before bounce rate is evaluated (avoid false positives)
 	CheckInterval    time.Duration
 }
 
 // DefaultAbuseConfig returns sensible defaults for abuse detection.
 func DefaultAbuseConfig() AbuseConfig {
 	return AbuseConfig{
-		MaxBounceRate:    0.2,   // 20% bounce rate
-		MinJobsForBounce: 10,   // at least 10 jobs before checking
+		MaxBounceRate:    0.2, // 20% bounce rate
+		MinJobsForBounce: 10,  // at least 10 jobs before checking
 		CheckInterval:    1 * time.Minute,
 	}
 }
 
 type AbuseDetector struct {
-	jobRepo    *repository.JobRepo
+	jobRepo      *repository.JobRepo
 	consumerRepo *repository.ConsumerRepo
-	cfg        AbuseConfig
+	cfg          AbuseConfig
 }
 
 func NewAbuseDetector(jobRepo *repository.JobRepo, consumerRepo *repository.ConsumerRepo, cfg AbuseConfig) *AbuseDetector {

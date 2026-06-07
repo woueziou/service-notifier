@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "last_updated": "2026-06-07T13:23:00.728Z",
+  "last_updated": "2026-06-07T14:54:37.026Z",
   "pages": {
     "concepts/abuse-detection-anti-spam": {
       "type": "concept",
@@ -143,6 +143,39 @@
         "cross-linking"
       ],
       "source_context": "\"Improving wiki health and interlinking\""
+    },
+    "sources/obs-2026-06-07-chi-removed-from-codebase": {
+      "type": "source",
+      "title": "\"Observation: Chi removed from codebase\"",
+      "created": "2026-06-07",
+      "updated": "2026-06-07",
+      "slug": "obs-2026-06-07-chi-removed-from-codebase",
+      "status": "observation",
+      "relevance": "high",
+      "observed_at": "2026-06-07T14:54:37.019Z",
+      "tags": [
+        "chi",
+        "fuego",
+        "middleware",
+        "cleanup"
+      ],
+      "source_context": "\"Removing chi from codebase after Fuego migration\""
+    },
+    "sources/obs-2026-06-07-go-module-renamed-to-woueziou-notifier": {
+      "type": "source",
+      "title": "\"Observation: Go module renamed to woueziou/notifier\"",
+      "created": "2026-06-07",
+      "updated": "2026-06-07",
+      "slug": "obs-2026-06-07-go-module-renamed-to-woueziou-notifier",
+      "status": "observation",
+      "relevance": "medium",
+      "observed_at": "2026-06-07T14:48:34.120Z",
+      "tags": [
+        "go",
+        "module",
+        "rename"
+      ],
+      "source_context": "\"Go module rename\""
     },
     "sources/obs-2026-06-07-migrated-from-chi-to-fuego-with-modular-architecture": {
       "type": "source",

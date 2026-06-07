@@ -15,3 +15,5 @@
 {"timestamp":"2026-06-07T10:18:02.524Z","kind":"observe","slug":"obs-2026-06-07-phase-4-frontend-pages-built","title":"Phase 4 frontend pages built","relevance":"high"}
 {"timestamp":"2026-06-07T11:27:54.382Z","kind":"observe","slug":"obs-2026-06-07-rate-limit-and-abuse-stats-page-added","title":"Rate limit and abuse stats page added","relevance":"high"}
 {"timestamp":"2026-06-07T13:23:00.722Z","kind":"observe","slug":"obs-2026-06-07-migrated-from-chi-to-fuego-with-modular-architecture","title":"Migrated from chi to Fuego with modular architecture","relevance":"high"}
+{"timestamp":"2026-06-07T14:48:34.120Z","kind":"observe","slug":"obs-2026-06-07-go-module-renamed-to-woueziou-notifier","title":"Go module renamed to woueziou/notifier","relevance":"medium"}
+{"timestamp":"2026-06-07T14:54:37.019Z","kind":"observe","slug":"obs-2026-06-07-chi-removed-from-codebase","title":"Chi removed from codebase","relevance":"high"}

@@ -21,6 +21,8 @@
 - [[sources/obs-2026-06-06-api-key-rotation-concept-added]] — "Observation: API key rotation concept added" *(created: 2026-06-06)*
 - [[sources/obs-2026-06-06-hmac-request-signing-implemented]] — "Observation: HMAC request signing implemented" *(created: 2026-06-06)*
 - [[sources/obs-2026-06-06-wiki-cross-linking-improved]] — "Observation: Wiki cross-linking improved" *(created: 2026-06-06)*
+- [[sources/obs-2026-06-07-chi-removed-from-codebase]] — "Observation: Chi removed from codebase" *(created: 2026-06-07)*
+- [[sources/obs-2026-06-07-go-module-renamed-to-woueziou-notifier]] — "Observation: Go module renamed to woueziou/notifier" *(created: 2026-06-07)*
 - [[sources/obs-2026-06-07-migrated-from-chi-to-fuego-with-modular-architecture]] — "Observation: Migrated from chi to Fuego with modular architecture" *(created: 2026-06-07)*
 - [[sources/obs-2026-06-07-phase-4-frontend-pages-built]] — "Observation: Phase 4 frontend pages built" *(created: 2026-06-07)*
 - [[sources/obs-2026-06-07-rate-limit-and-abuse-stats-page-added]] — "Observation: Rate limit and abuse stats page added" *(created: 2026-06-07)*
@@ -29,4 +31,4 @@
 - [[sources/SRC-2026-06-06-002]] — SRC-2026-06-06-002 *(created: 2026-06-07)*
 
 ---
-*Last updated: 2026-06-07T13:23:00.728Z* | *Total pages: 17*
+*Last updated: 2026-06-07T14:54:37.026Z* | *Total pages: 19*

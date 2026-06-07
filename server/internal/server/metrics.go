@@ -6,13 +6,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 // registerSafe calls prometheus.Register and ignores AlreadyRegisteredError.
-// This prevents panics in tests and is resilient to duplicate registrations.
 func registerSafe(c prometheus.Collector) {
 	if err := prometheus.Register(c); err != nil {
 		if _, ok := err.(prometheus.AlreadyRegisteredError); !ok {
@@ -23,12 +21,12 @@ func registerSafe(c prometheus.Collector) {
 
 // MetricsCollector holds all Prometheus metrics for the application.
 type MetricsCollector struct {
-	RequestCount    *prometheus.CounterVec
-	RequestDuration *prometheus.HistogramVec
+	RequestCount     *prometheus.CounterVec
+	RequestDuration  *prometheus.HistogramVec
 	RequestsInFlight prometheus.Gauge
-	QueueDepth      prometheus.GaugeFunc
-	DLQDepth        prometheus.GaugeFunc
-	WorkerCount     prometheus.GaugeFunc
+	QueueDepth       prometheus.GaugeFunc
+	DLQDepth         prometheus.GaugeFunc
+	WorkerCount      prometheus.GaugeFunc
 }
 
 // NewMetricsCollector creates and registers all Prometheus metrics.
@@ -73,7 +71,7 @@ func (m *MetricsCollector) SetQueueDepth(fn func() float64) {
 		},
 		fn,
 	)
-registerSafe(m.QueueDepth)
+	registerSafe(m.QueueDepth)
 }
 
 // SetDLQDepth registers a gauge function that reports the DLQ stream length.
@@ -85,7 +83,7 @@ func (m *MetricsCollector) SetDLQDepth(fn func() float64) {
 		},
 		fn,
 	)
-registerSafe(m.DLQDepth)
+	registerSafe(m.DLQDepth)
 }
 
 // SetWorkerCount registers a gauge for the active worker count.
@@ -97,7 +95,7 @@ func (m *MetricsCollector) SetWorkerCount(fn func() float64) {
 		},
 		fn,
 	)
-registerSafe(m.WorkerCount)
+	registerSafe(m.WorkerCount)
 }
 
 // MetricsMiddleware records request count, duration, and in-flight gauge.
@@ -113,12 +111,11 @@ func MetricsMiddleware(m *MetricsCollector) func(http.Handler) http.Handler {
 			duration := time.Since(start).Seconds()
 			status := strconv.Itoa(sw.status)
 
-			// Use the route pattern from chi context for cleaner path grouping
-			path := r.URL.Path
-			if rctx := chi.RouteContext(r.Context()); rctx != nil {
-				if pattern := rctx.RoutePattern(); pattern != "" {
-					path = pattern
-				}
+			// Use the matched route pattern for cleaner path grouping.
+			// In Go 1.22+, http.ServeMux sets r.Pattern to the matched pattern.
+			path := r.Pattern
+			if path == "" {
+				path = r.URL.Path
 			}
 
 			m.RequestCount.WithLabelValues(r.Method, path, status).Inc()

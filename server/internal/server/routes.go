@@ -3,7 +3,6 @@ package server
 import (
 	"net/http"
 
-	chimw "github.com/go-chi/chi/v5/middleware"
 	"woueziou/notifier/internal/handler"
 	"woueziou/notifier/internal/repository"
 	"woueziou/notifier/internal/service"
@@ -47,10 +46,10 @@ func NewFuegoServer(db *gorm.DB, rdb *redis.Client, cfg *ConfigAdapter) *fuego.S
 	}
 
 	// --- Global middleware (applied to all routes) ---
-	fuego.Use(s, chimw.RequestID)
-	fuego.Use(s, chimw.RealIP)
+	fuego.Use(s, RequestIDMiddleware)
+	fuego.Use(s, RealIPMiddleware)
 	fuego.Use(s, LoggerMiddleware)
-	fuego.Use(s, chimw.Recoverer)
+	fuego.Use(s, RecoveryMiddleware)
 
 	// --- OpenAPI info ---
 	s.OpenAPI.Description().Info.Title = "Notifier API"

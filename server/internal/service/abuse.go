@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/flyasky/notifier/internal/repository"
+	"woueziou/notifier/internal/repository"
 )
 
 // AbuseConfig defines thresholds for automatic consumer suspension.

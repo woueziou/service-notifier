@@ -37,6 +37,20 @@ function RootLayout() {
                 >
                   Jobs
                 </Link>
+                <Link
+                  to="/dlq"
+                  className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  activeProps={{ className: "text-red-600 bg-red-50" }}
+                >
+                  DLQ
+                </Link>
+                <Link
+                  to="/stats"
+                  className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50"
+                  activeProps={{ className: "text-purple-600 bg-purple-50" }}
+                >
+                  Stats
+                </Link>
               </div>
             </div>
           </div>

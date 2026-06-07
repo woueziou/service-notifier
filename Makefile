@@ -1,4 +1,4 @@
-.PHONY: all dev dev-docker server client run migrate-up migrate-down swag docker-up docker-down clean
+.PHONY: all dev dev-docker server client run migrate-up migrate-down docker-up docker-down clean
 
 GO=go
 NPM=npm

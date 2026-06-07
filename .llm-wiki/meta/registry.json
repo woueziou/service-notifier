@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "last_updated": "2026-06-06T20:02:19.615Z",
+  "last_updated": "2026-06-07T13:23:00.728Z",
   "pages": {
     "concepts/abuse-detection-anti-spam": {
       "type": "concept",
@@ -77,7 +77,7 @@
     "sources/SRC-2026-06-06-001": {
       "type": "source",
       "title": "SRC-2026-06-06-001",
-      "created": "2026-06-06",
+      "created": "2026-06-07",
       "updated": "2026-06-06",
       "format": "markdown",
       "source_id": "SRC-2026-06-06-001",
@@ -88,8 +88,8 @@
     "sources/SRC-2026-06-06-002": {
       "type": "source",
       "title": "SRC-2026-06-06-002",
-      "created": "2026-06-06",
-      "updated": "2026-06-06",
+      "created": "2026-06-07",
+      "updated": "2026-06-07",
       "format": "text",
       "source_id": "SRC-2026-06-06-002",
       "raw_path": "raw/sources/SRC-2026-06-06-002/extracted.md",
@@ -143,6 +143,77 @@
         "cross-linking"
       ],
       "source_context": "\"Improving wiki health and interlinking\""
+    },
+    "sources/obs-2026-06-07-migrated-from-chi-to-fuego-with-modular-architecture": {
+      "type": "source",
+      "title": "\"Observation: Migrated from chi to Fuego with modular architecture\"",
+      "created": "2026-06-07",
+      "updated": "2026-06-07",
+      "slug": "obs-2026-06-07-migrated-from-chi-to-fuego-with-modular-architecture",
+      "status": "observation",
+      "relevance": "high",
+      "observed_at": "2026-06-07T13:23:00.722Z",
+      "tags": [
+        "fuego",
+        "migration",
+        "openapi",
+        "modular",
+        "architecture"
+      ],
+      "source_context": "\"chi to Fuego migration\""
+    },
+    "sources/obs-2026-06-07-phase-4-frontend-pages-built": {
+      "type": "source",
+      "title": "\"Observation: Phase 4 frontend pages built\"",
+      "created": "2026-06-07",
+      "updated": "2026-06-07",
+      "slug": "obs-2026-06-07-phase-4-frontend-pages-built",
+      "status": "observation",
+      "relevance": "high",
+      "observed_at": "2026-06-07T10:18:02.523Z",
+      "tags": [
+        "frontend",
+        "phase4",
+        "dashboard",
+        "jobs",
+        "dlq"
+      ],
+      "source_context": "\"Phase 4 frontend completion\""
+    },
+    "sources/obs-2026-06-07-rate-limit-and-abuse-stats-page-added": {
+      "type": "source",
+      "title": "\"Observation: Rate limit and abuse stats page added\"",
+      "created": "2026-06-07",
+      "updated": "2026-06-07",
+      "slug": "obs-2026-06-07-rate-limit-and-abuse-stats-page-added",
+      "status": "observation",
+      "relevance": "high",
+      "observed_at": "2026-06-07T11:27:54.382Z",
+      "tags": [
+        "frontend",
+        "backend",
+        "stats",
+        "rate-limit",
+        "abuse"
+      ],
+      "source_context": "\"Phase 4 — rate limit and abuse stats page\""
+    },
+    "sources/obs-2026-06-07-redis-queue-depth-and-dlq-depth-gauges-wired": {
+      "type": "source",
+      "title": "\"Observation: Redis queue depth and DLQ depth gauges wired\"",
+      "created": "2026-06-07",
+      "updated": "2026-06-07",
+      "slug": "obs-2026-06-07-redis-queue-depth-and-dlq-depth-gauges-wired",
+      "status": "observation",
+      "relevance": "medium",
+      "observed_at": "2026-06-07T10:14:59.514Z",
+      "tags": [
+        "metrics",
+        "observability",
+        "redis",
+        "streams"
+      ],
+      "source_context": "\"Phase 3 — Redis stream queue depth and DLQ depth gauges\""
     }
   }
 }

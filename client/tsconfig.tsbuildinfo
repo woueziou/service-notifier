@@ -1,0 +1,1 @@
+{"root":["./src/main.tsx","./src/lib/api.ts","./src/routes/__root.tsx","./src/routes/index.tsx","./src/routes/consumers/$consumerid.tsx","./src/routes/consumers/create.tsx","./src/routes/consumers/index.tsx","./src/routes/jobs/$jobid.tsx","./src/routes/jobs/index.tsx"],"errors":true,"version":"5.7.3"}

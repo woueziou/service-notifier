@@ -9,32 +9,21 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/flyasky/notifier/internal/auth"
-	"github.com/flyasky/notifier/internal/config"
-	"github.com/flyasky/notifier/internal/engine"
-	"github.com/flyasky/notifier/internal/model"
-	"github.com/flyasky/notifier/internal/repository"
-	"github.com/flyasky/notifier/internal/server"
-	"github.com/flyasky/notifier/internal/service"
-	"github.com/flyasky/notifier/internal/worker"
+	"woueziou/notifier/internal/auth"
+	"woueziou/notifier/internal/config"
+	"woueziou/notifier/internal/engine"
+	"woueziou/notifier/internal/model"
+	"woueziou/notifier/internal/repository"
+	"woueziou/notifier/internal/server"
+	"woueziou/notifier/internal/service"
+	"woueziou/notifier/internal/worker"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
-// @title        Notifier API
-// @version      1.0
-// @description  A standalone email dispatch service — single source of truth for email notifications.
-// @contact.name  Notifier Team
-// @license.name  Proprietary
-// @host         localhost:8080
-// @schemes      http https
-// @securityDefinitions.apikey  BearerAuth
-// @in                           header
-// @name                         Authorization
 func main() {
-	// Load config
 	cfg, err := config.Load()
 	if err != nil {
 		slog.Error("failed to load config", "error", err)
@@ -43,13 +32,12 @@ func main() {
 
 	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo})))
 
-	// Container identity
 	if cfg.ContainerID == "" {
 		hostname, _ := os.Hostname()
 		cfg.ContainerID = hostname
 	}
 
-	// Connect to PostgreSQL
+	// --- Database ---
 	db, err := server.ConnectDB(cfg.DatabaseURL)
 	if err != nil {
 		slog.Error("failed to connect to database", "error", err)
@@ -57,7 +45,6 @@ func main() {
 	}
 	slog.Info("connected to postgresql")
 
-	// Run migrations
 	if cfg.RunMigrations {
 		if err := runMigrations(cfg.DatabaseURL, cfg.MigrationsPath); err != nil {
 			slog.Error("failed to run migrations", "error", err)
@@ -65,7 +52,6 @@ func main() {
 		}
 		slog.Info("database migrations complete")
 	} else {
-		// Dev fallback: AutoMigrate (creates tables from models)
 		if err := db.AutoMigrate(&model.Consumer{}, &model.Job{}, &model.AuditLog{}); err != nil {
 			slog.Error("failed to auto-migrate database", "error", err)
 			os.Exit(1)
@@ -73,7 +59,7 @@ func main() {
 		slog.Info("database auto-migrated (dev mode)")
 	}
 
-	// Connect to Redis
+	// --- Redis ---
 	rdb, err := server.ConnectRedis(cfg.RedisHost, cfg.RedisPort, cfg.RedisPass, cfg.RedisDB)
 	if err != nil {
 		slog.Error("failed to connect to redis", "error", err)
@@ -81,7 +67,6 @@ func main() {
 	}
 	slog.Info("connected to redis")
 
-	// Ensure Redis stream and consumer group exist
 	bgCtx := context.Background()
 	if err := server.EnsureStreamGroup(bgCtx, rdb, cfg.StreamName, cfg.StreamConsumerGroup); err != nil {
 		slog.Error("failed to create consumer group", "error", err)
@@ -89,23 +74,19 @@ func main() {
 	}
 	slog.Info("redis stream consumer group ready")
 
-	// SMTP Engine
+	// --- SMTP Engine ---
 	smtpEngine := engine.NewSMTPEngine(
-		cfg.SMTPHost,
-		cfg.SMTPPort,
-		cfg.SMTPUser,
-		cfg.SMTPPassword,
-		cfg.SMTPFrom,
+		cfg.SMTPHost, cfg.SMTPPort, cfg.SMTPUser, cfg.SMTPPassword, cfg.SMTPFrom,
 	)
 
-	// HMAC secret provider for request signing
+	// --- HMAC secret provider ---
 	secretProvider, err := initSecretProvider(cfg.HMACMasterKey)
 	if err != nil {
 		slog.Error("failed to initialize HMAC secret provider", "error", err)
 		os.Exit(1)
 	}
 
-	// Build handlers & router
+	// --- Build fuego server ---
 	senderDomain := extractDomain(cfg.SMTPFrom)
 	adapter := &server.ConfigAdapter{
 		AdminKey:       cfg.AdminAPIKey,
@@ -116,22 +97,9 @@ func main() {
 		SecretProvider: secretProvider,
 	}
 
-	handlers := server.NewHandlers(db, rdb, adapter, secretProvider)
-	consumerRepo := repository.NewConsumerRepo(db)
-	auditRepo := repository.NewAuditRepo(db)
-	rateLimiter := service.NewRateLimiter(rdb)
-	metrics := server.NewMetricsCollector()
-	router := server.NewRouter(handlers, consumerRepo, auditRepo, rateLimiter, metrics, adapter)
+	fuegoSrv := server.NewFuegoServer(db, rdb, adapter)
 
-	// --- Graceful Shutdown Setup ---
-	//
-	// On SIGINT/SIGTERM:
-	//   1. Cancel worker context → workers finish current message → exit
-	//   2. HTTP server shuts down (no new requests)
-	//   3. Wait for all workers to finish
-	//   4. Close Redis, DB connections
-	//   5. Exit
-
+	// --- Graceful Shutdown ---
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -142,14 +110,8 @@ func main() {
 	for i := range cfg.WorkerCount {
 		workerID := fmt.Sprintf("%s-worker-%d", cfg.ContainerID, i)
 		w := worker.New(
-			workerID,
-			rdb,
-			smtpEngine,
-			jobRepo,
-			cfg.StreamName,
-			cfg.StreamConsumerGroup,
-			cfg.DLQStreamName,
-			cfg.MaxRetries,
+			workerID, rdb, smtpEngine, jobRepo,
+			cfg.StreamName, cfg.StreamConsumerGroup, cfg.DLQStreamName, cfg.MaxRetries,
 		)
 		wg.Add(1)
 		go func(id string) {
@@ -163,7 +125,7 @@ func main() {
 
 	// Start abuse detector
 	abuseCfg := service.DefaultAbuseConfig()
-	abuseDetector := service.NewAbuseDetector(jobRepo, consumerRepo, abuseCfg)
+	abuseDetector := service.NewAbuseDetector(jobRepo, repository.NewConsumerRepo(db), abuseCfg)
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
@@ -171,51 +133,34 @@ func main() {
 	}()
 	slog.Info("abuse detector started", "interval", abuseCfg.CheckInterval)
 
-	// Start HTTP server (with graceful shutdown)
-	srv := server.New(adapter, db, rdb, router)
-
-	// Listen for interrupt signals
-	sigCh := make(chan os.Signal, 1)
-	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
-
+	// Start HTTP server in background (fuego's Run blocks)
 	go func() {
-		sig := <-sigCh
-		slog.Info("shutdown signal received", "signal", sig)
-
-		// Step 1: Stop accepting new work
-		cancel()
-
-		// Step 2: Graceful HTTP shutdown
-		if err := srv.Shutdown(context.Background()); err != nil {
-			slog.Error("http shutdown error", "error", err)
+		if err := fuegoSrv.Run(); err != nil {
+			slog.Error("server error", "error", err)
 		}
 	}()
 
-	// Block until HTTP server stops (either by error or by shutdown signal)
-	if err := srv.Start(cfg.Port); err != nil {
-		slog.Error("server error", "error", err)
-	}
+	// Wait for signal
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
+	<-sigCh
 
-	// Wait for all workers to finish their current message
+	slog.Info("shutdown signal received")
+	cancel()
 	slog.Info("waiting for workers to finish...")
 	wg.Wait()
 	slog.Info("all workers stopped, goodbye")
 }
 
 func runMigrations(databaseURL, migrationsPath string) error {
-	m, err := migrate.New(
-		"file://"+migrationsPath,
-		databaseURL,
-	)
+	m, err := migrate.New("file://"+migrationsPath, databaseURL)
 	if err != nil {
 		return fmt.Errorf("migrate init: %w", err)
 	}
 	defer m.Close()
-
 	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
 		return fmt.Errorf("migrate up: %w", err)
 	}
-
 	return nil
 }
 
@@ -228,12 +173,8 @@ func extractDomain(from string) string {
 	return "localhost"
 }
 
-// initSecretProvider initializes the HMAC secret encryption provider.
-// If no HMAC_MASTER_KEY is set, it generates one and logs it (single-node dev mode).
-// In production, set HMAC_MASTER_KEY as a 64-char hex string (32 bytes) in the environment.
 func initSecretProvider(masterKey string) (repository.HMACSecretProvider, error) {
 	if masterKey == "" {
-		// Dev-only: generate a key and log it
 		generated, err := auth.GenerateHMACMasterKey()
 		if err != nil {
 			return nil, fmt.Errorf("generate hmac master key: %w", err)

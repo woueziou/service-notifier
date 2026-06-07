@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/flyasky/notifier/internal/auth"
-	"github.com/flyasky/notifier/internal/model"
-	"github.com/flyasky/notifier/internal/repository"
+	"woueziou/notifier/internal/auth"
+	"woueziou/notifier/internal/model"
+	"woueziou/notifier/internal/repository"
 )
 
 type ConsumerService struct {

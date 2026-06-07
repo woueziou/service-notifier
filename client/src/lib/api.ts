@@ -48,9 +48,29 @@ export interface Job {
   status: "pending" | "delivered" | "failed" | "bounced"
   to: string
   subject: string
+  body?: string
   error?: string
   delivered_at?: string
   created_at: string
+  updated_at: string
+}
+
+export interface JobListResponse {
+  jobs: Job[]
+  total: number
+  limit: number
+  offset: number
+}
+
+export interface DLQEntry {
+  id: string
+  fields: Record<string, string>
+}
+
+export interface DashboardStats {
+  consumers: number
+  jobs_today: number
+  dlq_depth: number
 }
 
 // --- API functions ---
@@ -72,7 +92,72 @@ export async function createConsumer(
   })
 }
 
-export async function listJobs(consumerId?: string): Promise<Job[]> {
-  const params = consumerId ? `?consumer_id=${consumerId}` : ""
-  return api<Job[]>(`/admin/jobs${params}`)
+export async function listJobs(params?: {
+  consumer_id?: string
+  status?: string
+  limit?: number
+  offset?: number
+}): Promise<JobListResponse> {
+  const search = new URLSearchParams()
+  if (params?.consumer_id) search.set("consumer_id", params.consumer_id)
+  if (params?.status) search.set("status", params.status)
+  if (params?.limit) search.set("limit", String(params.limit))
+  if (params?.offset) search.set("offset", String(params.offset))
+  const qs = search.toString()
+  return api<JobListResponse>(`/admin/jobs${qs ? "?" + qs : ""}`)
+}
+
+export async function getJob(id: string): Promise<Job> {
+  return api<Job>(`/admin/jobs/${id}`)
+}
+
+export async function suspendConsumer(id: string): Promise<void> {
+  await api(`/admin/consumers/${id}/suspend`, { method: "POST" })
+}
+
+export async function reactivateConsumer(id: string): Promise<void> {
+  await api(`/admin/consumers/${id}/reactivate`, { method: "POST" })
+}
+
+export async function listDLQ(params?: {
+  count?: number
+}): Promise<DLQEntry[]> {
+  const search = new URLSearchParams()
+  if (params?.count) search.set("count", String(params.count))
+  const qs = search.toString()
+  return api<DLQEntry[]>(`/admin/dlq${qs ? "?" + qs : ""}`)
+}
+
+export async function replayDLQ(id: string): Promise<void> {
+  await api(`/admin/dlq/${id}/replay`, { method: "POST" })
+}
+
+// --- Stats ---
+
+export interface ConsumerStats {
+  id: string
+  name: string
+  active: boolean
+  suspended: boolean
+  sender_email: string
+  total_jobs: number
+  bounce_rate: number
+  rate_limit_current: number
+  rate_limit_max: number
+}
+
+export interface StatsSummary {
+  total_consumers: number
+  active_consumers: number
+  suspended_consumers: number
+  total_jobs: number
+}
+
+export interface StatsResponse {
+  summary: StatsSummary
+  consumers: ConsumerStats[]
+}
+
+export async function getStats(): Promise<StatsResponse> {
+  return api<StatsResponse>("/admin/stats")
 }

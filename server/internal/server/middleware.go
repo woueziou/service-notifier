@@ -11,11 +11,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/flyasky/notifier/internal/auth"
-	"github.com/flyasky/notifier/internal/handler"
-	"github.com/flyasky/notifier/internal/model"
-	"github.com/flyasky/notifier/internal/repository"
-	"github.com/flyasky/notifier/internal/service"
+	"woueziou/notifier/internal/auth"
+	"woueziou/notifier/internal/handler"
+	"woueziou/notifier/internal/model"
+	"woueziou/notifier/internal/repository"
+	"woueziou/notifier/internal/service"
 )
 
 // AuthMiddleware authenticates requests using either:

@@ -21,8 +21,12 @@
 - [[sources/obs-2026-06-06-api-key-rotation-concept-added]] — "Observation: API key rotation concept added" *(created: 2026-06-06)*
 - [[sources/obs-2026-06-06-hmac-request-signing-implemented]] — "Observation: HMAC request signing implemented" *(created: 2026-06-06)*
 - [[sources/obs-2026-06-06-wiki-cross-linking-improved]] — "Observation: Wiki cross-linking improved" *(created: 2026-06-06)*
-- [[sources/SRC-2026-06-06-001]] — SRC-2026-06-06-001 *(created: 2026-06-06)*
-- [[sources/SRC-2026-06-06-002]] — SRC-2026-06-06-002 *(created: 2026-06-06)*
+- [[sources/obs-2026-06-07-migrated-from-chi-to-fuego-with-modular-architecture]] — "Observation: Migrated from chi to Fuego with modular architecture" *(created: 2026-06-07)*
+- [[sources/obs-2026-06-07-phase-4-frontend-pages-built]] — "Observation: Phase 4 frontend pages built" *(created: 2026-06-07)*
+- [[sources/obs-2026-06-07-rate-limit-and-abuse-stats-page-added]] — "Observation: Rate limit and abuse stats page added" *(created: 2026-06-07)*
+- [[sources/obs-2026-06-07-redis-queue-depth-and-dlq-depth-gauges-wired]] — "Observation: Redis queue depth and DLQ depth gauges wired" *(created: 2026-06-07)*
+- [[sources/SRC-2026-06-06-001]] — SRC-2026-06-06-001 *(created: 2026-06-07)*
+- [[sources/SRC-2026-06-06-002]] — SRC-2026-06-06-002 *(created: 2026-06-07)*
 
 ---
-*Last updated: 2026-06-06T20:02:19.615Z* | *Total pages: 13*
+*Last updated: 2026-06-07T13:23:00.728Z* | *Total pages: 17*

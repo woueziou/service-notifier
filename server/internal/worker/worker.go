@@ -8,8 +8,8 @@ import (
 	"math"
 	"time"
 
-	"github.com/flyasky/notifier/internal/engine"
-	"github.com/flyasky/notifier/internal/repository"
+	"woueziou/notifier/internal/engine"
+	"woueziou/notifier/internal/repository"
 	"github.com/redis/go-redis/v9"
 )
 

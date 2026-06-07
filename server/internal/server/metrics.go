@@ -11,6 +11,16 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
+// registerSafe calls prometheus.Register and ignores AlreadyRegisteredError.
+// This prevents panics in tests and is resilient to duplicate registrations.
+func registerSafe(c prometheus.Collector) {
+	if err := prometheus.Register(c); err != nil {
+		if _, ok := err.(prometheus.AlreadyRegisteredError); !ok {
+			panic(err)
+		}
+	}
+}
+
 // MetricsCollector holds all Prometheus metrics for the application.
 type MetricsCollector struct {
 	RequestCount    *prometheus.CounterVec
@@ -47,9 +57,9 @@ func NewMetricsCollector() *MetricsCollector {
 		),
 	}
 
-	prometheus.MustRegister(m.RequestCount)
-	prometheus.MustRegister(m.RequestDuration)
-	prometheus.MustRegister(m.RequestsInFlight)
+	registerSafe(m.RequestCount)
+	registerSafe(m.RequestDuration)
+	registerSafe(m.RequestsInFlight)
 
 	return m
 }
@@ -63,7 +73,7 @@ func (m *MetricsCollector) SetQueueDepth(fn func() float64) {
 		},
 		fn,
 	)
-	prometheus.MustRegister(m.QueueDepth)
+registerSafe(m.QueueDepth)
 }
 
 // SetDLQDepth registers a gauge function that reports the DLQ stream length.
@@ -75,7 +85,7 @@ func (m *MetricsCollector) SetDLQDepth(fn func() float64) {
 		},
 		fn,
 	)
-	prometheus.MustRegister(m.DLQDepth)
+registerSafe(m.DLQDepth)
 }
 
 // SetWorkerCount registers a gauge for the active worker count.
@@ -87,7 +97,7 @@ func (m *MetricsCollector) SetWorkerCount(fn func() float64) {
 		},
 		fn,
 	)
-	prometheus.MustRegister(m.WorkerCount)
+registerSafe(m.WorkerCount)
 }
 
 // MetricsMiddleware records request count, duration, and in-flight gauge.
@@ -121,15 +131,6 @@ func MetricsMiddleware(m *MetricsCollector) func(http.Handler) http.Handler {
 // MetricsHandler returns the /metrics endpoint handler.
 func MetricsHandler() http.Handler {
 	return promhttp.Handler()
-}
-
-// QueueDepthReporter returns a function that reads the stream length from Redis.
-// This is wired into the metrics collector by the server startup.
-func QueueDepthReporter(rdb interface{ XLen(ctx interface{}, stream string) interface{} }, stream string) func() float64 {
-	return func() float64 {
-		// This is wired via the actual redis client in main.go
-		return 0
-	}
 }
 
 // LogMetrics logs key metrics periodically for debugging.

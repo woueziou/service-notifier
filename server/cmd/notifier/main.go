@@ -88,8 +88,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	// --- Seed default admin user ---
-	if err := seedAdmin(db, cfg.AdminDefaultUsername, cfg.AdminDefaultPassword); err != nil {
+	// --- Seed first admin user ---
+	if err := seedAdminByEmail(db, cfg.AdminSeedEmail); err != nil {
 		slog.Error("failed to seed admin user", "error", err)
 		os.Exit(1)
 	}
@@ -102,6 +102,8 @@ func main() {
 		MaxRetries:     cfg.MaxRetries,
 		SenderDomain:   senderDomain,
 		SecretProvider: secretProvider,
+		SMTPEngine:     smtpEngine,
+		SMTPFrom:       cfg.SMTPFrom,
 	}
 
 	fuegoSrv := server.NewFuegoServer(db, rdb, adapter)
@@ -180,9 +182,9 @@ func extractDomain(from string) string {
 	return "localhost"
 }
 
-func seedAdmin(db *gorm.DB, username, password string) error {
-	if password == "" {
-		slog.Warn("ADMIN_DEFAULT_PASSWORD not set — no admin user seeded")
+func seedAdminByEmail(db *gorm.DB, email string) error {
+	if email == "" {
+		slog.Warn("ADMIN_SEED_EMAIL not set — no admin user seeded")
 		return nil
 	}
 
@@ -194,15 +196,15 @@ func seedAdmin(db *gorm.DB, username, password string) error {
 		return fmt.Errorf("check admin users: %w", err)
 	}
 	if count > 0 {
-		slog.Info("admin user already exists, skipping seed")
+		slog.Info("admin users already exist, skipping seed")
 		return nil
 	}
 
-	user, err := repo.Create(ctx, username, password)
+	user, err := repo.Create(ctx, email, model.RoleSuperAdmin, nil)
 	if err != nil {
 		return fmt.Errorf("create admin user: %w", err)
 	}
-	slog.Info("default admin user created", "username", user.Username)
+	slog.Info("first super_admin created", "email", user.Email)
 	return nil
 }
 

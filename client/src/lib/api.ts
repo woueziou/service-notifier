@@ -14,7 +14,6 @@ export async function api<T>(path: string, options?: RequestInit): Promise<T> {
     },
   })
   if (res.status === 401) {
-    // Session expired or not logged in — redirect to login
     window.location.href = "/login"
     throw new Error("Session expired")
   }
@@ -27,33 +26,44 @@ export async function api<T>(path: string, options?: RequestInit): Promise<T> {
 
 // --- Auth ---
 
-export interface LoginRequest {
-  username: string
-  password: string
-}
-
-export interface LoginResponse {
-  username: string
-  created_at: string
-}
-
 export interface MeResponse {
-  username: string
+  email: string
+  role: "viewer" | "admin" | "super_admin"
   created_at: string
 }
 
-export async function login(data: LoginRequest): Promise<LoginResponse> {
-  const res = await fetch(`${API_BASE}/auth/login`, {
+export interface AdminUser {
+  id: string
+  email: string
+  role: "viewer" | "admin" | "super_admin"
+  created_at: string
+}
+
+export async function requestLogin(email: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/auth/request-login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
+    body: JSON.stringify({ email }),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(err.message || `Request failed (${res.status})`)
+  }
+  // Always returns { status: "check_your_email" } — no leak
+}
+
+export async function verifyLogin(email: string, code: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/auth/verify-login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, code }),
     credentials: "include",
   })
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
-    throw new Error(err.message || `Login failed (${res.status})`)
+    throw new Error(err.message || `Verification failed (${res.status})`)
   }
-  return res.json()
+  // Session cookie is set by the server
 }
 
 export async function logout(): Promise<void> {
@@ -71,6 +81,24 @@ export async function whoami(): Promise<MeResponse> {
     throw new Error("Not authenticated")
   }
   return res.json()
+}
+
+export async function listAdminUsers(): Promise<AdminUser[]> {
+  return api<AdminUser[]>("/auth/admin-users")
+}
+
+export async function addAdminUser(
+  email: string,
+  role: "viewer" | "admin"
+): Promise<AdminUser> {
+  return api<AdminUser>("/auth/admin-users", {
+    method: "POST",
+    body: JSON.stringify({ email, role }),
+  })
+}
+
+export async function deleteAdminUser(id: string): Promise<void> {
+  await api(`/auth/admin-users/${id}`, { method: "DELETE" })
 }
 
 // --- Types ---

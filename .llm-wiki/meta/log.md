@@ -60,3 +60,6 @@
 ## [2026-06-07T18:11:03.786Z] observe
 - slug: "obs-2026-06-07-session-based-admin-auth-implemented", title: "Session-based admin auth implemented", relevance: "high"
 
+## [2026-06-07T18:48:14.643Z] observe
+- slug: "obs-2026-06-07-email-based-admin-auth-with-rbac-implemented", title: "Email-based admin auth with RBAC implemented", relevance: "high"
+

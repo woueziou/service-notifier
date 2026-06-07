@@ -3,7 +3,9 @@ package server
 import (
 	"net/http"
 
+	"woueziou/notifier/internal/engine"
 	"woueziou/notifier/internal/handler"
+	"woueziou/notifier/internal/model"
 	"woueziou/notifier/internal/repository"
 	"woueziou/notifier/internal/service"
 	"github.com/getkin/kin-openapi/openapi3"
@@ -19,6 +21,8 @@ type ConfigAdapter struct {
 	MaxRetries     int
 	SenderDomain   string
 	SecretProvider repository.HMACSecretProvider
+	SMTPEngine     *engine.SMTPEngine
+	SMTPFrom       string
 }
 
 // NewFuegoServer creates a fully-wired fuego server with all modules, middleware, and routes.
@@ -85,13 +89,14 @@ func NewFuegoServer(db *gorm.DB, rdb *redis.Client, cfg *ConfigAdapter) *fuego.S
 	dispatchModule := handler.NewDispatchModule(dispatchSvc)
 	dispatchModule.Register(s, dispatchAuth...)
 
-	// Auth (session-based, no admin middleware)
-	authModule := handler.NewAuthModule(repository.NewAdminUserRepo(db), rdb)
+	// Auth (email-based login with magic codes)
+	authModule := handler.NewAuthModule(repository.NewAdminUserRepo(db), rdb, cfg.SMTPEngine, cfg.SMTPFrom)
 	authModule.Register(s)
 
-	// Admin (session auth via cookie)
+	// Admin routes: session required, write operations require admin+
 	adminAuth := []func(http.Handler) http.Handler{
 		handler.SessionAuthMiddleware(rdb),
+		handler.RequireRoleForWrite(model.RoleAdmin),
 	}
 	consumerModule := handler.NewConsumerModule(consumerSvc, cfg.SenderDomain)
 	consumerModule.Register(s, adminAuth...)

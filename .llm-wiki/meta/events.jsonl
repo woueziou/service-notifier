@@ -18,3 +18,4 @@
 {"timestamp":"2026-06-07T14:48:34.120Z","kind":"observe","slug":"obs-2026-06-07-go-module-renamed-to-woueziou-notifier","title":"Go module renamed to woueziou/notifier","relevance":"medium"}
 {"timestamp":"2026-06-07T14:54:37.019Z","kind":"observe","slug":"obs-2026-06-07-chi-removed-from-codebase","title":"Chi removed from codebase","relevance":"high"}
 {"timestamp":"2026-06-07T18:11:03.786Z","kind":"observe","slug":"obs-2026-06-07-session-based-admin-auth-implemented","title":"Session-based admin auth implemented","relevance":"high"}
+{"timestamp":"2026-06-07T18:48:14.643Z","kind":"observe","slug":"obs-2026-06-07-email-based-admin-auth-with-rbac-implemented","title":"Email-based admin auth with RBAC implemented","relevance":"high"}

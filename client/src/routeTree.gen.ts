@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as StatsRouteImport } from './routes/stats'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DlqRouteImport } from './routes/dlq'
+import { Route as AdminUsersRouteImport } from './routes/admin-users'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as JobsIndexRouteImport } from './routes/jobs/index'
 import { Route as ConsumersIndexRouteImport } from './routes/consumers/index'
@@ -32,6 +33,11 @@ const LoginRoute = LoginRouteImport.update({
 const DlqRoute = DlqRouteImport.update({
   id: '/dlq',
   path: '/dlq',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/admin-users',
+  path: '/admin-users',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -67,6 +73,7 @@ const ConsumersConsumerIdRoute = ConsumersConsumerIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin-users': typeof AdminUsersRoute
   '/dlq': typeof DlqRoute
   '/login': typeof LoginRoute
   '/stats': typeof StatsRoute
@@ -78,6 +85,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin-users': typeof AdminUsersRoute
   '/dlq': typeof DlqRoute
   '/login': typeof LoginRoute
   '/stats': typeof StatsRoute
@@ -90,6 +98,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin-users': typeof AdminUsersRoute
   '/dlq': typeof DlqRoute
   '/login': typeof LoginRoute
   '/stats': typeof StatsRoute
@@ -103,6 +112,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin-users'
     | '/dlq'
     | '/login'
     | '/stats'
@@ -114,6 +124,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin-users'
     | '/dlq'
     | '/login'
     | '/stats'
@@ -125,6 +136,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/admin-users'
     | '/dlq'
     | '/login'
     | '/stats'
@@ -137,6 +149,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminUsersRoute: typeof AdminUsersRoute
   DlqRoute: typeof DlqRoute
   LoginRoute: typeof LoginRoute
   StatsRoute: typeof StatsRoute
@@ -168,6 +181,13 @@ declare module '@tanstack/react-router' {
       path: '/dlq'
       fullPath: '/dlq'
       preLoaderRoute: typeof DlqRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin-users': {
+      id: '/admin-users'
+      path: '/admin-users'
+      fullPath: '/admin-users'
+      preLoaderRoute: typeof AdminUsersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -217,6 +237,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminUsersRoute: AdminUsersRoute,
   DlqRoute: DlqRoute,
   LoginRoute: LoginRoute,
   StatsRoute: StatsRoute,

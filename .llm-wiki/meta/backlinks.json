@@ -64,6 +64,7 @@
   "sources/obs-2026-06-06-hmac-request-signing-implemented": [],
   "sources/obs-2026-06-06-wiki-cross-linking-improved": [],
   "sources/obs-2026-06-07-chi-removed-from-codebase": [],
+  "sources/obs-2026-06-07-email-based-admin-auth-with-rbac-implemented": [],
   "sources/obs-2026-06-07-go-module-renamed-to-woueziou-notifier": [],
   "sources/obs-2026-06-07-migrated-from-chi-to-fuego-with-modular-architecture": [],
   "sources/obs-2026-06-07-phase-4-frontend-pages-built": [],

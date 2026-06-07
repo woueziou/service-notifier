@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"woueziou/notifier/internal/auth"
 	"woueziou/notifier/internal/model"
 	"gorm.io/gorm"
 )
@@ -17,34 +16,52 @@ func NewAdminUserRepo(db *gorm.DB) *AdminUserRepo {
 	return &AdminUserRepo{db: db}
 }
 
-// FindByUsername looks up an admin user by username.
-func (r *AdminUserRepo) FindByUsername(ctx context.Context, username string) (*model.AdminUser, error) {
+// FindByEmail looks up an admin user by email.
+func (r *AdminUserRepo) FindByEmail(ctx context.Context, email string) (*model.AdminUser, error) {
 	var user model.AdminUser
-	err := r.db.WithContext(ctx).Where("username = ?", username).First(&user).Error
+	err := r.db.WithContext(ctx).Where("email = ?", email).First(&user).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, nil
 		}
-		return nil, fmt.Errorf("find admin user: %w", err)
+		return nil, fmt.Errorf("find admin user by email: %w", err)
 	}
 	return &user, nil
 }
 
-// Create inserts a new admin user with a bcrypt-hashed password.
-func (r *AdminUserRepo) Create(ctx context.Context, username, password string) (*model.AdminUser, error) {
-	hash, err := auth.HashPassword(password)
+// List returns all admin users ordered by creation time.
+func (r *AdminUserRepo) List(ctx context.Context) ([]model.AdminUser, error) {
+	var users []model.AdminUser
+	err := r.db.WithContext(ctx).Order("created_at ASC").Find(&users).Error
 	if err != nil {
-		return nil, fmt.Errorf("hash password: %w", err)
+		return nil, fmt.Errorf("list admin users: %w", err)
 	}
+	return users, nil
+}
 
+// Create inserts a new admin user.
+func (r *AdminUserRepo) Create(ctx context.Context, email string, role model.AdminRole, createdBy *string) (*model.AdminUser, error) {
 	user := &model.AdminUser{
-		Username:     username,
-		PasswordHash: hash,
+		Email:     email,
+		Role:      role,
+		CreatedBy: createdBy,
 	}
 	if err := r.db.WithContext(ctx).Create(user).Error; err != nil {
 		return nil, fmt.Errorf("create admin user: %w", err)
 	}
 	return user, nil
+}
+
+// Delete removes an admin user by ID.
+func (r *AdminUserRepo) Delete(ctx context.Context, id string) error {
+	result := r.db.WithContext(ctx).Delete(&model.AdminUser{}, "id = ?", id)
+	if result.Error != nil {
+		return fmt.Errorf("delete admin user: %w", result.Error)
+	}
+	if result.RowsAffected == 0 {
+		return fmt.Errorf("admin user not found")
+	}
+	return nil
 }
 
 // Count returns the total number of admin users.

@@ -4,17 +4,18 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/flyasky/notifier/internal/auth"
-	"github.com/flyasky/notifier/internal/model"
-	"github.com/flyasky/notifier/internal/repository"
+	"woueziou/notifier/internal/auth"
+	"woueziou/notifier/internal/model"
+	"woueziou/notifier/internal/repository"
 )
 
 type ConsumerService struct {
-	repo *repository.ConsumerRepo
+	repo    *repository.ConsumerRepo
+	secrets repository.HMACSecretProvider
 }
 
-func NewConsumerService(repo *repository.ConsumerRepo) *ConsumerService {
-	return &ConsumerService{repo: repo}
+func NewConsumerService(repo *repository.ConsumerRepo, secrets repository.HMACSecretProvider) *ConsumerService {
+	return &ConsumerService{repo: repo, secrets: secrets}
 }
 
 func (s *ConsumerService) Create(ctx context.Context, req *model.CreateConsumerRequest, domain string) (*model.CreateConsumerResponse, error) {
@@ -23,9 +24,20 @@ func (s *ConsumerService) Create(ctx context.Context, req *model.CreateConsumerR
 		return nil, fmt.Errorf("generate key: %w", err)
 	}
 
+	// Generate HMAC secret for request signing
+	rawHMACSecret, err := auth.GenerateHMACSecret()
+	if err != nil {
+		return nil, fmt.Errorf("generate hmac secret: %w", err)
+	}
+
+	encryptedHMACSecret, err := s.secrets.Encrypt(rawHMACSecret)
+	if err != nil {
+		return nil, fmt.Errorf("encrypt hmac secret: %w", err)
+	}
+
 	senderEmail := fmt.Sprintf("%s@%s", req.EmailPrefix, domain)
 
-	consumer, err := s.repo.Create(ctx, req.Name, req.EmailPrefix, senderEmail, hash)
+	consumer, err := s.repo.Create(ctx, req.Name, req.EmailPrefix, senderEmail, hash, encryptedHMACSecret)
 	if err != nil {
 		return nil, fmt.Errorf("create consumer: %w", err)
 	}
@@ -36,6 +48,7 @@ func (s *ConsumerService) Create(ctx context.Context, req *model.CreateConsumerR
 		EmailPrefix: consumer.EmailPrefix,
 		SenderEmail: consumer.SenderEmail,
 		APIKey:      rawKey, // shown once
+		HMACSecret:  rawHMACSecret, // shown once
 	}, nil
 }
 

@@ -1,0 +1,288 @@
+{
+  "version": "1.0",
+  "last_updated": "2026-06-07T18:48:14.651Z",
+  "pages": {
+    "concepts/abuse-detection-anti-spam": {
+      "type": "concept",
+      "title": "abuse-detection-anti-spam",
+      "created": "2026-06-06",
+      "updated": "2026-06-06",
+      "sources": [
+        "[[sources/SRC-2026-06-06-001]]"
+      ]
+    },
+    "concepts/api-key-based-authentication": {
+      "type": "concept",
+      "title": "api-key-based-authentication",
+      "created": "2026-06-06",
+      "updated": "2026-06-06",
+      "sources": [
+        "[[sources/SRC-2026-06-06-001]]"
+      ]
+    },
+    "concepts/api-key-rotation": {
+      "type": "concept",
+      "title": "api-key-rotation",
+      "created": "2026-06-06",
+      "updated": "2026-06-06",
+      "sources": [
+        "[sources/SRC-2026-06-06-001]"
+      ]
+    },
+    "concepts/hmac-request-signing": {
+      "type": "concept",
+      "title": "hmac-request-signing",
+      "created": "2026-06-06",
+      "updated": "2026-06-06",
+      "sources": [
+        "[sources/SRC-2026-06-06-002]"
+      ]
+    },
+    "concepts/job-status-tracking": {
+      "type": "concept",
+      "title": "job-status-tracking",
+      "created": "2026-06-06",
+      "updated": "2026-06-06",
+      "sources": [
+        "[[sources/SRC-2026-06-06-001]]"
+      ]
+    },
+    "concepts/single-source-of-truth-notification-dispatch": {
+      "type": "concept",
+      "title": "single-source-of-truth-notification-dispatch",
+      "created": "2026-06-06",
+      "updated": "2026-06-06",
+      "sources": [
+        "[[sources/SRC-2026-06-06-001]]"
+      ]
+    },
+    "entities/consumer": {
+      "type": "entity",
+      "title": "consumer",
+      "created": "2026-06-06",
+      "updated": "2026-06-06",
+      "sources": [
+        "[sources/SRC-2026-06-06-001]"
+      ]
+    },
+    "entities/notifier": {
+      "type": "entity",
+      "title": "notifier",
+      "created": "2026-06-06",
+      "updated": "2026-06-06",
+      "sources": [
+        "[[sources/SRC-2026-06-06-001]]"
+      ]
+    },
+    "sources/SRC-2026-06-06-001": {
+      "type": "source",
+      "title": "SRC-2026-06-06-001",
+      "created": "2026-06-07",
+      "updated": "2026-06-06",
+      "format": "markdown",
+      "source_id": "SRC-2026-06-06-001",
+      "raw_path": "raw/sources/SRC-2026-06-06-001/extracted.md",
+      "captured": "2026-06-06",
+      "status": "ingested"
+    },
+    "sources/SRC-2026-06-06-002": {
+      "type": "source",
+      "title": "SRC-2026-06-06-002",
+      "created": "2026-06-07",
+      "updated": "2026-06-07",
+      "format": "text",
+      "source_id": "SRC-2026-06-06-002",
+      "raw_path": "raw/sources/SRC-2026-06-06-002/extracted.md",
+      "captured": "2026-06-06",
+      "status": "skeleton"
+    },
+    "sources/obs-2026-06-06-api-key-rotation-concept-added": {
+      "type": "source",
+      "title": "\"Observation: API key rotation concept added\"",
+      "created": "2026-06-06",
+      "updated": "2026-06-06",
+      "slug": "obs-2026-06-06-api-key-rotation-concept-added",
+      "status": "observation",
+      "relevance": "high",
+      "observed_at": "2026-06-06T19:24:56.515Z",
+      "tags": [
+        "wiki",
+        "security",
+        "api-key-rotation"
+      ],
+      "source_context": "\"Enriching wiki with API key rotation knowledge\""
+    },
+    "sources/obs-2026-06-06-hmac-request-signing-implemented": {
+      "type": "source",
+      "title": "\"Observation: HMAC request signing implemented\"",
+      "created": "2026-06-06",
+      "updated": "2026-06-06",
+      "slug": "obs-2026-06-06-hmac-request-signing-implemented",
+      "status": "observation",
+      "relevance": "high",
+      "observed_at": "2026-06-06T20:02:15.133Z",
+      "tags": [
+        "auth",
+        "hmac",
+        "security",
+        "implementation"
+      ],
+      "source_context": "\"Implementing HMAC request signing for Notifier\""
+    },
+    "sources/obs-2026-06-06-wiki-cross-linking-improved": {
+      "type": "source",
+      "title": "\"Observation: Wiki cross-linking improved\"",
+      "created": "2026-06-06",
+      "updated": "2026-06-06",
+      "slug": "obs-2026-06-06-wiki-cross-linking-improved",
+      "status": "observation",
+      "relevance": "medium",
+      "observed_at": "2026-06-06T19:24:56.516Z",
+      "tags": [
+        "wiki",
+        "cross-linking"
+      ],
+      "source_context": "\"Improving wiki health and interlinking\""
+    },
+    "sources/obs-2026-06-07-chi-removed-from-codebase": {
+      "type": "source",
+      "title": "\"Observation: Chi removed from codebase\"",
+      "created": "2026-06-07",
+      "updated": "2026-06-07",
+      "slug": "obs-2026-06-07-chi-removed-from-codebase",
+      "status": "observation",
+      "relevance": "high",
+      "observed_at": "2026-06-07T14:54:37.019Z",
+      "tags": [
+        "chi",
+        "fuego",
+        "middleware",
+        "cleanup"
+      ],
+      "source_context": "\"Removing chi from codebase after Fuego migration\""
+    },
+    "sources/obs-2026-06-07-email-based-admin-auth-with-rbac-implemented": {
+      "type": "source",
+      "title": "\"Observation: Email-based admin auth with RBAC implemented\"",
+      "created": "2026-06-07",
+      "updated": "2026-06-07",
+      "slug": "obs-2026-06-07-email-based-admin-auth-with-rbac-implemented",
+      "status": "observation",
+      "relevance": "high",
+      "observed_at": "2026-06-07T18:48:14.642Z",
+      "tags": [
+        "auth",
+        "rbac",
+        "email",
+        "session",
+        "backend",
+        "frontend"
+      ],
+      "source_context": "\"Reimplementing admin auth with email-based login and role-based access\""
+    },
+    "sources/obs-2026-06-07-go-module-renamed-to-woueziou-notifier": {
+      "type": "source",
+      "title": "\"Observation: Go module renamed to woueziou/notifier\"",
+      "created": "2026-06-07",
+      "updated": "2026-06-07",
+      "slug": "obs-2026-06-07-go-module-renamed-to-woueziou-notifier",
+      "status": "observation",
+      "relevance": "medium",
+      "observed_at": "2026-06-07T14:48:34.120Z",
+      "tags": [
+        "go",
+        "module",
+        "rename"
+      ],
+      "source_context": "\"Go module rename\""
+    },
+    "sources/obs-2026-06-07-migrated-from-chi-to-fuego-with-modular-architecture": {
+      "type": "source",
+      "title": "\"Observation: Migrated from chi to Fuego with modular architecture\"",
+      "created": "2026-06-07",
+      "updated": "2026-06-07",
+      "slug": "obs-2026-06-07-migrated-from-chi-to-fuego-with-modular-architecture",
+      "status": "observation",
+      "relevance": "high",
+      "observed_at": "2026-06-07T13:23:00.722Z",
+      "tags": [
+        "fuego",
+        "migration",
+        "openapi",
+        "modular",
+        "architecture"
+      ],
+      "source_context": "\"chi to Fuego migration\""
+    },
+    "sources/obs-2026-06-07-phase-4-frontend-pages-built": {
+      "type": "source",
+      "title": "\"Observation: Phase 4 frontend pages built\"",
+      "created": "2026-06-07",
+      "updated": "2026-06-07",
+      "slug": "obs-2026-06-07-phase-4-frontend-pages-built",
+      "status": "observation",
+      "relevance": "high",
+      "observed_at": "2026-06-07T10:18:02.523Z",
+      "tags": [
+        "frontend",
+        "phase4",
+        "dashboard",
+        "jobs",
+        "dlq"
+      ],
+      "source_context": "\"Phase 4 frontend completion\""
+    },
+    "sources/obs-2026-06-07-rate-limit-and-abuse-stats-page-added": {
+      "type": "source",
+      "title": "\"Observation: Rate limit and abuse stats page added\"",
+      "created": "2026-06-07",
+      "updated": "2026-06-07",
+      "slug": "obs-2026-06-07-rate-limit-and-abuse-stats-page-added",
+      "status": "observation",
+      "relevance": "high",
+      "observed_at": "2026-06-07T11:27:54.382Z",
+      "tags": [
+        "frontend",
+        "backend",
+        "stats",
+        "rate-limit",
+        "abuse"
+      ],
+      "source_context": "\"Phase 4 — rate limit and abuse stats page\""
+    },
+    "sources/obs-2026-06-07-redis-queue-depth-and-dlq-depth-gauges-wired": {
+      "type": "source",
+      "title": "\"Observation: Redis queue depth and DLQ depth gauges wired\"",
+      "created": "2026-06-07",
+      "updated": "2026-06-07",
+      "slug": "obs-2026-06-07-redis-queue-depth-and-dlq-depth-gauges-wired",
+      "status": "observation",
+      "relevance": "medium",
+      "observed_at": "2026-06-07T10:14:59.514Z",
+      "tags": [
+        "metrics",
+        "observability",
+        "redis",
+        "streams"
+      ],
+      "source_context": "\"Phase 3 — Redis stream queue depth and DLQ depth gauges\""
+    },
+    "sources/obs-2026-06-07-session-based-admin-auth-implemented": {
+      "type": "source",
+      "title": "\"Observation: Session-based admin auth implemented\"",
+      "created": "2026-06-07",
+      "updated": "2026-06-07",
+      "slug": "obs-2026-06-07-session-based-admin-auth-implemented",
+      "status": "observation",
+      "relevance": "high",
+      "observed_at": "2026-06-07T18:11:03.785Z",
+      "tags": [
+        "auth",
+        "backend",
+        "frontend",
+        "session"
+      ],
+      "source_context": "\"Implementing username/password auth for admin dashboard\""
+    }
+  }
+}

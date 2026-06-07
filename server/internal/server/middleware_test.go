@@ -6,8 +6,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/flyasky/notifier/internal/handler"
-	"github.com/flyasky/notifier/internal/repository"
+	"woueziou/notifier/internal/handler"
+	"woueziou/notifier/internal/repository"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"

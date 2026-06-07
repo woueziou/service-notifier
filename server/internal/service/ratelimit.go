@@ -54,6 +54,26 @@ func (rl *RateLimiter) Allow(ctx context.Context, consumerID string, maxPerMinut
 	return count < int64(maxPerMinute), nil
 }
 
+// GetCurrentCount reads the current request count in the sliding window
+// without adding a new entry. Used by the admin stats endpoint.
+func (rl *RateLimiter) GetCurrentCount(ctx context.Context, consumerID string) (int64, error) {
+	key := fmt.Sprintf("ratelimit:%s:minute", consumerID)
+	now := time.Now().UnixMilli()
+	window := now - 60_000
+
+	// Clean up old entries and count
+	pipe := rl.rdb.Pipeline()
+	pipe.ZRemRangeByScore(ctx, key, "0", fmt.Sprintf("%d", window))
+	countCmd := pipe.ZCard(ctx, key)
+	pipe.Expire(ctx, key, 70*time.Second)
+
+	if _, err := pipe.Exec(ctx); err != nil {
+		return 0, fmt.Errorf("get rate limit count: %w", err)
+	}
+
+	return countCmd.Val(), nil
+}
+
 func randomHex(n int) string {
 	buf := make([]byte, n)
 	if _, err := rand.Read(buf); err != nil {

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/flyasky/notifier/internal/model"
+	"woueziou/notifier/internal/model"
 )
 
 // ConsumerContextKey is the context key used to store the authenticated consumer.

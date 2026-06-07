@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/flyasky/notifier/internal/model"
+	"woueziou/notifier/internal/model"
 )
 
 func TestMustMarshalJSON(t *testing.T) {

@@ -27,18 +27,25 @@ type Config struct {
 	SMTPPassword string `env:"SMTP_PASSWORD" envDefault:""`
 	SMTPFrom     string `env:"SMTP_FROM" envDefault:"notifier@localhost"`
 
-	// Admin
-	AdminAPIKey string `env:"ADMIN_API_KEY" envDefault:"admin-key-change-me"`
+	// Admin email-based auth
+	AdminSeedEmail string `env:"ADMIN_SEED_EMAIL" envDefault:""`
 
 	// Worker
-	WorkerCount int `env:"WORKER_COUNT" envDefault:"5"`
+	WorkerCount int    `env:"WORKER_COUNT" envDefault:"5"`
 	ContainerID string `env:"CONTAINER_ID" envDefault:""`
+
+	// Migrations
+	MigrationsPath string `env:"MIGRATIONS_PATH" envDefault:"migrations"`
+	RunMigrations  bool   `env:"RUN_MIGRATIONS" envDefault:"true"`
 
 	// Redis Streams
 	StreamName        string `env:"REDIS_STREAM_NAME" envDefault:"email:jobs"`
 	StreamConsumerGroup string `env:"REDIS_CONSUMER_GROUP" envDefault:"notifier-workers"`
 	DLQStreamName     string `env:"REDIS_DLQ_STREAM" envDefault:"email:dlq"`
 	MaxRetries        int    `env:"MAX_RETRIES" envDefault:"3"`
+
+	// HMAC Auth
+	HMACMasterKey string `env:"HMAC_MASTER_KEY" envDefault:""`
 }
 
 func Load() (*Config, error) {

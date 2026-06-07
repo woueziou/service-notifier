@@ -1,0 +1,69 @@
+{
+  "gaps": [
+    {
+      "topic": "[sources/SRC-2026-06-06-001",
+      "mentionedBy": [
+        "concepts/abuse-detection-anti-spam",
+        "concepts/api-key-based-authentication",
+        "concepts/job-status-tracking",
+        "concepts/single-source-of-truth-notification-dispatch",
+        "entities/notifier"
+      ]
+    },
+    {
+      "topic": "consumer",
+      "mentionedBy": [
+        "concepts/api-key-based-authentication",
+        "concepts/api-key-rotation",
+        "concepts/single-source-of-truth-notification-dispatch",
+        "entities/notifier"
+      ]
+    },
+    {
+      "topic": "concepts/rate-limiting",
+      "mentionedBy": [
+        "concepts/api-key-based-authentication",
+        "concepts/api-key-rotation"
+      ]
+    },
+    {
+      "topic": "mail-server",
+      "mentionedBy": [
+        "concepts/api-key-rotation",
+        "concepts/single-source-of-truth-notification-dispatch",
+        "entities/notifier"
+      ]
+    },
+    {
+      "topic": "notifier",
+      "mentionedBy": [
+        "sources/SRC-2026-06-06-001"
+      ]
+    },
+    {
+      "topic": "single-source-of-truth-notification-dispatch",
+      "mentionedBy": [
+        "sources/SRC-2026-06-06-001"
+      ]
+    },
+    {
+      "topic": "api-key-based-authentication",
+      "mentionedBy": [
+        "sources/SRC-2026-06-06-001"
+      ]
+    },
+    {
+      "topic": "abuse-detection-anti-spam",
+      "mentionedBy": [
+        "sources/SRC-2026-06-06-001"
+      ]
+    },
+    {
+      "topic": "job-status-tracking",
+      "mentionedBy": [
+        "sources/SRC-2026-06-06-001"
+      ]
+    }
+  ],
+  "generated": "2026-06-06T19:24:49.267Z"
+}

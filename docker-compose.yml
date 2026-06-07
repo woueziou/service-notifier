@@ -27,9 +27,3 @@ services:
     depends_on:
       mailpit:
         condition: service_started
-    networks:
-      - dokploy-network
-
-networks:
-  dokploy-network:
-    external: true

@@ -7,7 +7,8 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -o /notifier ./cmd/notifier
 
 FROM alpine:3.19
-RUN apk add --no-cache ca-certificates tzdata
+
+RUN apk add --no-cache ca-certificates tzdata wget
 COPY --from=builder /notifier /notifier
 EXPOSE 8080
 ENTRYPOINT ["/notifier"]

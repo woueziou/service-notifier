@@ -14,7 +14,9 @@ type Config struct {
 	// PostgreSQL
 	DatabaseURL string `env:"DATABASE_URL" envDefault:"postgres://postgres:P0stgr3s_Pssw0rd_2024@localhost:5432/notifier?sslmode=disable"`
 
-	// Redis
+	// Redis — use REDIS_URL for single-connection-string config.
+	// Falls back to individual REDIS_HOST/PORT/PASSWORD/DB if URL is empty.
+	RedisURL string `env:"REDIS_URL" envDefault:""`
 	RedisHost string `env:"REDIS_HOST" envDefault:"localhost"`
 	RedisPort int    `env:"REDIS_PORT" envDefault:"6379"`
 	RedisPass string `env:"REDIS_PASSWORD" envDefault:"Rd1s_P@ssw0rd_2024"`

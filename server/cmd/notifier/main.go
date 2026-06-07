@@ -62,7 +62,7 @@ func main() {
 	}
 
 	// --- Redis ---
-	rdb, err := server.ConnectRedis(cfg.RedisHost, cfg.RedisPort, cfg.RedisPass, cfg.RedisDB)
+	rdb, err := server.ConnectRedis(cfg.RedisURL, cfg.RedisHost, cfg.RedisPort, cfg.RedisPass, cfg.RedisDB)
 	if err != nil {
 		slog.Error("failed to connect to redis", "error", err)
 		os.Exit(1)

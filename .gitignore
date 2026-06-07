@@ -17,4 +17,5 @@ client/dist/
 Thumbs.db
 
 # Docker
-.env
+.env*
+!.env*.example

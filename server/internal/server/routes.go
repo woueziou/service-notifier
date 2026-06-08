@@ -23,6 +23,7 @@ type ConfigAdapter struct {
 	SecretProvider repository.HMACSecretProvider
 	SMTPEngine     *engine.SMTPEngine
 	SMTPFrom       string
+	CORSOrigin     string
 }
 
 // NewFuegoServer creates a fully-wired fuego server with all modules, middleware, and routes.
@@ -48,9 +49,11 @@ func NewFuegoServer(db *gorm.DB, rdb *redis.Client, cfg *ConfigAdapter) *fuego.S
 		})
 	}
 
-	// --- Global middleware (applied to all routes) ---
+	// --- Global middleware (applied to all routes, order matters) ---
+	// CORS must be early to handle OPTIONS preflight before other middleware.
 	fuego.Use(s, RequestIDMiddleware)
 	fuego.Use(s, RealIPMiddleware)
+	fuego.Use(s, CORSMiddleware(cfg.CORSOrigin))
 	fuego.Use(s, LoggerMiddleware)
 	fuego.Use(s, RecoveryMiddleware)
 

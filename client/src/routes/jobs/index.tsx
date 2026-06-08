@@ -8,8 +8,6 @@ export const Route = createFileRoute("/jobs/")({
   component: JobsList,
 })
 
-const STATUSES = ["", "pending", "delivered", "failed", "bounced"] as const
-
 function JobsList() {
   const [status, setStatus] = useState("")
   const [page, setPage] = useState(0)

@@ -63,3 +63,9 @@
 ## [2026-06-07T18:48:14.643Z] observe
 - slug: "obs-2026-06-07-email-based-admin-auth-with-rbac-implemented", title: "Email-based admin auth with RBAC implemented", relevance: "high"
 
+## [2026-06-08T08:39:00.882Z] observe
+- slug: "obs-2026-06-08-client-switched-to-bun-runtime-node-24-serve", title: "Client switched to Bun runtime + Node 24 serve", relevance: "medium"
+
+## [2026-06-08T08:43:48.046Z] observe
+- slug: "obs-2026-06-08-cors-middleware-added-to-go-server", title: "CORS middleware added to Go server", relevance: "medium"
+

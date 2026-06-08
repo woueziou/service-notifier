@@ -29,8 +29,10 @@
 - [[sources/obs-2026-06-07-rate-limit-and-abuse-stats-page-added]] — "Observation: Rate limit and abuse stats page added" *(created: 2026-06-07)*
 - [[sources/obs-2026-06-07-redis-queue-depth-and-dlq-depth-gauges-wired]] — "Observation: Redis queue depth and DLQ depth gauges wired" *(created: 2026-06-07)*
 - [[sources/obs-2026-06-07-session-based-admin-auth-implemented]] — "Observation: Session-based admin auth implemented" *(created: 2026-06-07)*
-- [[sources/SRC-2026-06-06-001]] — SRC-2026-06-06-001 *(created: 2026-06-07)*
-- [[sources/SRC-2026-06-06-002]] — SRC-2026-06-06-002 *(created: 2026-06-07)*
+- [[sources/obs-2026-06-08-client-switched-to-bun-runtime-node-24-serve]] — "Observation: Client switched to Bun runtime + Node 24 serve" *(created: 2026-06-08)*
+- [[sources/obs-2026-06-08-cors-middleware-added-to-go-server]] — "Observation: CORS middleware added to Go server" *(created: 2026-06-08)*
+- [[sources/SRC-2026-06-06-001]] — SRC-2026-06-06-001 *(created: 2026-06-08)*
+- [[sources/SRC-2026-06-06-002]] — SRC-2026-06-06-002 *(created: 2026-06-08)*
 
 ---
-*Last updated: 2026-06-07T18:48:14.651Z* | *Total pages: 21*
+*Last updated: 2026-06-08T08:43:48.050Z* | *Total pages: 23*

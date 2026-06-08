@@ -104,6 +104,7 @@ func main() {
 		SecretProvider: secretProvider,
 		SMTPEngine:     smtpEngine,
 		SMTPFrom:       cfg.SMTPFrom,
+		CORSOrigin:     cfg.CORSOrigin,
 	}
 
 	fuegoSrv := server.NewFuegoServer(db, rdb, adapter)

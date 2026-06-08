@@ -48,6 +48,12 @@ type Config struct {
 
 	// HMAC Auth
 	HMACMasterKey string `env:"HMAC_MASTER_KEY" envDefault:""`
+
+	// CORS
+	// Comma-separated allowed origins for cross-origin requests from the admin UI.
+	// Set to "*" to allow all origins (not compatible with credentialed requests).
+	// Examples: "https://notifier.example.com" or "https://notifier.example.com,https://admin.example.com"
+	CORSOrigin string `env:"CORS_ORIGIN" envDefault:"*"`
 }
 
 func Load() (*Config, error) {

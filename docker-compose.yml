@@ -27,3 +27,24 @@ services:
     depends_on:
       mailpit:
         condition: service_started
+    networks:
+      - dokploy-network
+
+  notifier-client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-/api}
+    expose:
+      - "80"
+    ports:
+      - "80:80"
+    env_file:
+      - ./client/.env
+    networks:
+      - dokploy-network
+
+networks:
+  dokploy-network:
+    external: true

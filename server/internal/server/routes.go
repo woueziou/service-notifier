@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"net/http"
 
 	"woueziou/notifier/internal/engine"
@@ -24,6 +25,7 @@ type ConfigAdapter struct {
 	SMTPEngine     *engine.SMTPEngine
 	SMTPFrom       string
 	CORSOrigin     string
+	Port           int
 }
 
 // NewFuegoServer creates a fully-wired fuego server with all modules, middleware, and routes.
@@ -39,7 +41,7 @@ func NewFuegoServer(db *gorm.DB, rdb *redis.Client, cfg *ConfigAdapter) *fuego.S
 	rateLimiter := service.NewRateLimiter(rdb)
 
 	// --- Fuego server ---
-	s := fuego.NewServer(fuego.WithAddr(":8080"))
+	s := fuego.NewServer(fuego.WithAddr(fmt.Sprintf(":%d", cfg.Port)))
 
 	// Replace default Stoplight Elements with Scalar API docs UI
 	s.OpenAPI.Config.UIHandler = func(specURL string) http.Handler {

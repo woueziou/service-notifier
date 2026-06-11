@@ -69,3 +69,9 @@
 ## [2026-06-08T08:43:48.046Z] observe
 - slug: "obs-2026-06-08-cors-middleware-added-to-go-server", title: "CORS middleware added to Go server", relevance: "medium"
 
+## [2026-06-11T15:22:18.654Z] observe
+- slug: "obs-2026-06-11-container-names-and-env-driven-ports-added-to-docker-compose", title: "Container names and env-driven ports added to docker-compose", relevance: "medium"
+
+## [2026-06-11T15:36:32.218Z] observe
+- slug: "obs-2026-06-11-server-port-now-configurable-via-port-env-var-end-to-end", title: "Server port now configurable via PORT env var end-to-end", relevance: "medium"
+

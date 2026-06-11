@@ -105,6 +105,7 @@ func main() {
 		SMTPEngine:     smtpEngine,
 		SMTPFrom:       cfg.SMTPFrom,
 		CORSOrigin:     cfg.CORSOrigin,
+		Port:           cfg.Port,
 	}
 
 	fuegoSrv := server.NewFuegoServer(db, rdb, adapter)

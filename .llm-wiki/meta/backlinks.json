@@ -72,5 +72,7 @@
   "sources/obs-2026-06-07-redis-queue-depth-and-dlq-depth-gauges-wired": [],
   "sources/obs-2026-06-07-session-based-admin-auth-implemented": [],
   "sources/obs-2026-06-08-client-switched-to-bun-runtime-node-24-serve": [],
-  "sources/obs-2026-06-08-cors-middleware-added-to-go-server": []
+  "sources/obs-2026-06-08-cors-middleware-added-to-go-server": [],
+  "sources/obs-2026-06-11-container-names-and-env-driven-ports-added-to-docker-compose": [],
+  "sources/obs-2026-06-11-server-port-now-configurable-via-port-env-var-end-to-end": []
 }

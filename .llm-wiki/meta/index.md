@@ -31,8 +31,10 @@
 - [[sources/obs-2026-06-07-session-based-admin-auth-implemented]] — "Observation: Session-based admin auth implemented" *(created: 2026-06-07)*
 - [[sources/obs-2026-06-08-client-switched-to-bun-runtime-node-24-serve]] — "Observation: Client switched to Bun runtime + Node 24 serve" *(created: 2026-06-08)*
 - [[sources/obs-2026-06-08-cors-middleware-added-to-go-server]] — "Observation: CORS middleware added to Go server" *(created: 2026-06-08)*
-- [[sources/SRC-2026-06-06-001]] — SRC-2026-06-06-001 *(created: 2026-06-08)*
-- [[sources/SRC-2026-06-06-002]] — SRC-2026-06-06-002 *(created: 2026-06-08)*
+- [[sources/obs-2026-06-11-container-names-and-env-driven-ports-added-to-docker-compose]] — "Observation: Container names and env-driven ports added to docker-compose" *(created: 2026-06-11)*
+- [[sources/obs-2026-06-11-server-port-now-configurable-via-port-env-var-end-to-end]] — "Observation: Server port now configurable via PORT env var end-to-end" *(created: 2026-06-11)*
+- [[sources/SRC-2026-06-06-001]] — SRC-2026-06-06-001 *(created: 2026-06-11)*
+- [[sources/SRC-2026-06-06-002]] — SRC-2026-06-06-002 *(created: 2026-06-11)*
 
 ---
-*Last updated: 2026-06-08T08:43:48.050Z* | *Total pages: 23*
+*Last updated: 2026-06-11T15:36:32.224Z* | *Total pages: 25*

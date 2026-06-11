@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "last_updated": "2026-06-08T08:43:48.050Z",
+  "last_updated": "2026-06-11T15:36:32.224Z",
   "pages": {
     "concepts/abuse-detection-anti-spam": {
       "type": "concept",
@@ -77,7 +77,7 @@
     "sources/SRC-2026-06-06-001": {
       "type": "source",
       "title": "SRC-2026-06-06-001",
-      "created": "2026-06-08",
+      "created": "2026-06-11",
       "updated": "2026-06-06",
       "format": "markdown",
       "source_id": "SRC-2026-06-06-001",
@@ -88,8 +88,8 @@
     "sources/SRC-2026-06-06-002": {
       "type": "source",
       "title": "SRC-2026-06-06-002",
-      "created": "2026-06-08",
-      "updated": "2026-06-08",
+      "created": "2026-06-11",
+      "updated": "2026-06-11",
       "format": "text",
       "source_id": "SRC-2026-06-06-002",
       "raw_path": "raw/sources/SRC-2026-06-06-002/extracted.md",
@@ -318,6 +318,39 @@
         "config"
       ],
       "source_context": "\"Adding CORS support for cross-origin client-server deployment\""
+    },
+    "sources/obs-2026-06-11-container-names-and-env-driven-ports-added-to-docker-compose": {
+      "type": "source",
+      "title": "\"Observation: Container names and env-driven ports added to docker-compose\"",
+      "created": "2026-06-11",
+      "updated": "2026-06-11",
+      "slug": "obs-2026-06-11-container-names-and-env-driven-ports-added-to-docker-compose",
+      "status": "observation",
+      "relevance": "medium",
+      "observed_at": "2026-06-11T15:22:18.652Z",
+      "tags": [
+        "docker-compose",
+        "devops",
+        "networking"
+      ],
+      "source_context": "\"Adding container names and env-driven ports to docker-compose\""
+    },
+    "sources/obs-2026-06-11-server-port-now-configurable-via-port-env-var-end-to-end": {
+      "type": "source",
+      "title": "\"Observation: Server port now configurable via PORT env var end-to-end\"",
+      "created": "2026-06-11",
+      "updated": "2026-06-11",
+      "slug": "obs-2026-06-11-server-port-now-configurable-via-port-env-var-end-to-end",
+      "status": "observation",
+      "relevance": "medium",
+      "observed_at": "2026-06-11T15:36:32.218Z",
+      "tags": [
+        "server",
+        "docker",
+        "fuego",
+        "port"
+      ],
+      "source_context": "\"Aligning Dockerfiles with docker-compose changes\""
     }
   }
 }

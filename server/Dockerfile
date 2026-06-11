@@ -18,5 +18,6 @@ COPY --from=builder /app/migrations /app/migrations
 
 WORKDIR /app
 
-EXPOSE 8080
+ARG PORT=8080
+EXPOSE ${PORT}
 ENTRYPOINT ["/notifier"]

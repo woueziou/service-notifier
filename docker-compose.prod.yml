@@ -16,14 +16,13 @@
 
 services:
   notifier:
-    image: notifier:latest
+    container_name: notifier-server
+    image: notifier-server:latest
     build:
       context: ./server
       dockerfile: Dockerfile
     expose:
       - "${PORT}"
-    ports:
-      - "${PORT}:${PORT}"
     env_file:
       - .env
     restart: unless-stopped
@@ -39,6 +38,24 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    networks:
+      - dokploy-network
+
+  notifier-client:
+    container_name: notifier-client
+    image: notifier-client:latest
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-/api}
+    expose:
+      - "80"
+    ports:
+      - "${CLIENT_PORT:-80}:80"
+    env_file:
+      - .env
+    restart: unless-stopped
     networks:
       - dokploy-network
 

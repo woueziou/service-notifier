@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"net/http"
 
 	"woueziou/notifier/internal/engine"
@@ -23,6 +24,8 @@ type ConfigAdapter struct {
 	SecretProvider repository.HMACSecretProvider
 	SMTPEngine     *engine.SMTPEngine
 	SMTPFrom       string
+	CORSOrigin     string
+	Port           int
 }
 
 // NewFuegoServer creates a fully-wired fuego server with all modules, middleware, and routes.
@@ -38,7 +41,7 @@ func NewFuegoServer(db *gorm.DB, rdb *redis.Client, cfg *ConfigAdapter) *fuego.S
 	rateLimiter := service.NewRateLimiter(rdb)
 
 	// --- Fuego server ---
-	s := fuego.NewServer(fuego.WithAddr(":8080"))
+	s := fuego.NewServer(fuego.WithAddr(fmt.Sprintf(":%d", cfg.Port)))
 
 	// Replace default Stoplight Elements with Scalar API docs UI
 	s.OpenAPI.Config.UIHandler = func(specURL string) http.Handler {
@@ -48,9 +51,11 @@ func NewFuegoServer(db *gorm.DB, rdb *redis.Client, cfg *ConfigAdapter) *fuego.S
 		})
 	}
 
-	// --- Global middleware (applied to all routes) ---
+	// --- Global middleware (applied to all routes, order matters) ---
+	// CORS must be early to handle OPTIONS preflight before other middleware.
 	fuego.Use(s, RequestIDMiddleware)
 	fuego.Use(s, RealIPMiddleware)
+	fuego.Use(s, CORSMiddleware(cfg.CORSOrigin))
 	fuego.Use(s, LoggerMiddleware)
 	fuego.Use(s, RecoveryMiddleware)
 

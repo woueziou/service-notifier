@@ -345,3 +345,70 @@ func BodySizeLimitMiddleware(maxBytes int64) func(http.Handler) http.Handler {
 		})
 	}
 }
+
+// --- CORS ------------------------------------------------------------------
+
+// CORSMiddleware allows cross-origin requests from configured origins.
+// It handles preflight OPTIONS requests and sets the appropriate headers.
+//
+// When credentials are required (cookies), the origin must be explicit —
+// the wildcard "*" is replaced with the request's Origin header for
+// credentialed requests per the CORS spec.
+func CORSMiddleware(allowedOrigins string) func(http.Handler) http.Handler {
+	// Pre-parse allowed origins into a set for fast lookup
+	origins := parseOrigins(allowedOrigins)
+	allowAll := allowedOrigins == "*"
+
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			origin := r.Header.Get("Origin")
+
+			// Only process if the request has an Origin header (i.e. cross-origin)
+			if origin != "" {
+				// Determine the allowed value for this request
+				var allowedOrigin string
+				switch {
+				case allowAll:
+					// For credentialed requests, echo back the specific origin.
+					// For non-credentialed, we could use "*", but echoing is simpler.
+					allowedOrigin = origin
+				case origins[origin]:
+					allowedOrigin = origin
+				default:
+					// Origin not allowed — pass through without CORS headers.
+					// The browser will reject the response due to missing ACAO header.
+					// Still call next so the server can log the request.
+					next.ServeHTTP(w, r)
+					return
+				}
+
+				w.Header().Set("Access-Control-Allow-Origin", allowedOrigin)
+				w.Header().Set("Vary", "Origin")
+				w.Header().Set("Access-Control-Allow-Credentials", "true")
+
+				// Handle preflight
+				if r.Method == http.MethodOptions {
+					w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+					w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Request-Id, X-Consumer-ID, X-Timestamp, X-Signature")
+					w.Header().Set("Access-Control-Max-Age", "86400")
+					w.WriteHeader(http.StatusNoContent)
+					return
+				}
+			}
+
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
+// parseOrigins splits a comma-separated list of origins into a set.
+func parseOrigins(s string) map[string]bool {
+	result := make(map[string]bool)
+	for _, o := range strings.Split(s, ",") {
+		o = strings.TrimSpace(o)
+		if o != "" {
+			result[o] = true
+		}
+	}
+	return result
+}

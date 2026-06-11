@@ -23,6 +23,8 @@ services:
       dockerfile: Dockerfile
     expose:
       - "${PORT}"
+    ports:
+      - "${PORT}:${PORT}"
     env_file:
       - .env
     restart: unless-stopped

@@ -9,7 +9,7 @@ ARG VITE_API_URL=/api
 ENV VITE_API_URL=${VITE_API_URL}
 
 # Install dependencies (separate from source for layer caching)
-COPY package.json bun.lockb ./
+COPY package.json ./
 RUN bun install --frozen-lockfile
 
 # Copy source and build

@@ -52,7 +52,7 @@ services:
     expose:
       - "80"
     ports:
-      - "${CLIENT_PORT:-80}:80"
+      - "${CLIENT_PORT}:80"
     env_file:
       - .env
     restart: unless-stopped

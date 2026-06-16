@@ -13,6 +13,7 @@ import (
 	"woueziou/notifier/internal/engine"
 	"woueziou/notifier/internal/model"
 	"woueziou/notifier/internal/repository"
+
 	"github.com/go-fuego/fuego"
 	"github.com/redis/go-redis/v9"
 )
@@ -26,9 +27,9 @@ const AdminUserContextKey ctxAdminKey = "admin_user"
 // --- Redis keys & TTLs ---
 
 const (
-	loginCodePrefix  = "admin:logincode:"
-	sessionPrefix    = "admin:session:"
-	loginCodeTTL     = 15 * time.Minute
+	loginCodePrefix   = "admin:logincode:"
+	sessionPrefix     = "admin:session:"
+	loginCodeTTL      = 15 * time.Minute
 	defaultSessionTTL = 8 * time.Hour
 )
 
@@ -138,6 +139,7 @@ func (m *AuthModule) requestLogin(c fuego.ContextWithBody[requestLoginBody]) (an
 	if err := m.smtp.Send(c.Context(), msg); err != nil {
 		// Log but don't expose — code is stored, user just won't receive it
 		// In production, this would need alerting
+		fmt.Println(err)
 		return nil, fuego.InternalServerError{Title: "failed to send login email"}
 	}
 

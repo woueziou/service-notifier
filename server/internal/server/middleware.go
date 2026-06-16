@@ -388,7 +388,7 @@ func CORSMiddleware(allowedOrigins string) func(http.Handler) http.Handler {
 
 				// Handle preflight
 				if r.Method == http.MethodOptions {
-					w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+					w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD, DISPATCH")
 					w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Request-Id, X-Consumer-ID, X-Timestamp, X-Signature")
 					w.Header().Set("Access-Control-Max-Age", "86400")
 					w.WriteHeader(http.StatusNoContent)

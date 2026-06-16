@@ -33,8 +33,9 @@
 - [[sources/obs-2026-06-08-cors-middleware-added-to-go-server]] — "Observation: CORS middleware added to Go server" *(created: 2026-06-08)*
 - [[sources/obs-2026-06-11-container-names-and-env-driven-ports-added-to-docker-compose]] — "Observation: Container names and env-driven ports added to docker-compose" *(created: 2026-06-11)*
 - [[sources/obs-2026-06-11-server-port-now-configurable-via-port-env-var-end-to-end]] — "Observation: Server port now configurable via PORT env var end-to-end" *(created: 2026-06-11)*
-- [[sources/SRC-2026-06-06-001]] — SRC-2026-06-06-001 *(created: 2026-06-11)*
-- [[sources/SRC-2026-06-06-002]] — SRC-2026-06-06-002 *(created: 2026-06-11)*
+- [[sources/obs-2026-06-16-smtp-sendmail-error-logging-and-wrapping]] — "Observation: SMTP SendMail error logging and wrapping" *(created: 2026-06-16)*
+- [[sources/SRC-2026-06-06-001]] — SRC-2026-06-06-001 *(created: 2026-06-16)*
+- [[sources/SRC-2026-06-06-002]] — SRC-2026-06-06-002 *(created: 2026-06-16)*
 
 ---
-*Last updated: 2026-06-11T15:36:32.224Z* | *Total pages: 25*
+*Last updated: 2026-06-16T16:24:29.483Z* | *Total pages: 26*

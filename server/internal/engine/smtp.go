@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"log/slog"
 	"net/smtp"
 	"strings"
 )
@@ -45,5 +46,17 @@ func (e *SMTPEngine) Send(ctx context.Context, msg *EmailMessage) error {
 		auth = smtp.PlainAuth("", e.User, e.Pass, e.Host)
 	}
 
-	return smtp.SendMail(addr, auth, msg.From, msg.To, buf.Bytes())
+	if err := smtp.SendMail(addr, auth, msg.From, msg.To, buf.Bytes()); err != nil {
+		slog.Error("smtp send failed",
+			"host", e.Host,
+			"port", e.Port,
+			"from", msg.From,
+			"to", msg.To,
+			"subject", msg.Subject,
+			"error", err,
+		)
+		return fmt.Errorf("smtp send: %w", err)
+	}
+
+	return nil
 }

@@ -74,5 +74,6 @@
   "sources/obs-2026-06-08-client-switched-to-bun-runtime-node-24-serve": [],
   "sources/obs-2026-06-08-cors-middleware-added-to-go-server": [],
   "sources/obs-2026-06-11-container-names-and-env-driven-ports-added-to-docker-compose": [],
-  "sources/obs-2026-06-11-server-port-now-configurable-via-port-env-var-end-to-end": []
+  "sources/obs-2026-06-11-server-port-now-configurable-via-port-env-var-end-to-end": [],
+  "sources/obs-2026-06-16-smtp-sendmail-error-logging-and-wrapping": []
 }

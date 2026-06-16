@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "last_updated": "2026-06-11T15:36:32.224Z",
+  "last_updated": "2026-06-16T16:24:29.483Z",
   "pages": {
     "concepts/abuse-detection-anti-spam": {
       "type": "concept",
@@ -77,7 +77,7 @@
     "sources/SRC-2026-06-06-001": {
       "type": "source",
       "title": "SRC-2026-06-06-001",
-      "created": "2026-06-11",
+      "created": "2026-06-16",
       "updated": "2026-06-06",
       "format": "markdown",
       "source_id": "SRC-2026-06-06-001",
@@ -88,8 +88,8 @@
     "sources/SRC-2026-06-06-002": {
       "type": "source",
       "title": "SRC-2026-06-06-002",
-      "created": "2026-06-11",
-      "updated": "2026-06-11",
+      "created": "2026-06-16",
+      "updated": "2026-06-16",
       "format": "text",
       "source_id": "SRC-2026-06-06-002",
       "raw_path": "raw/sources/SRC-2026-06-06-002/extracted.md",
@@ -351,6 +351,22 @@
         "port"
       ],
       "source_context": "\"Aligning Dockerfiles with docker-compose changes\""
+    },
+    "sources/obs-2026-06-16-smtp-sendmail-error-logging-and-wrapping": {
+      "type": "source",
+      "title": "\"Observation: SMTP SendMail error logging and wrapping\"",
+      "created": "2026-06-16",
+      "updated": "2026-06-16",
+      "slug": "obs-2026-06-16-smtp-sendmail-error-logging-and-wrapping",
+      "status": "observation",
+      "relevance": "medium",
+      "observed_at": "2026-06-16T16:24:29.473Z",
+      "tags": [
+        "backend",
+        "smtp",
+        "observability"
+      ],
+      "source_context": "\"Fixing SMTP error observability per user request\""
     }
   }
 }

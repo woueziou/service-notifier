@@ -75,3 +75,6 @@
 ## [2026-06-11T15:36:32.218Z] observe
 - slug: "obs-2026-06-11-server-port-now-configurable-via-port-env-var-end-to-end", title: "Server port now configurable via PORT env var end-to-end", relevance: "medium"
 
+## [2026-06-16T16:24:29.474Z] observe
+- slug: "obs-2026-06-16-smtp-sendmail-error-logging-and-wrapping", title: "SMTP SendMail error logging and wrapping", relevance: "medium"
+

@@ -1,5 +1,5 @@
-# postgres and redis are expected to be already running externally as containers
-# named "postgres" and "redis". They must be on the same Docker network.
+# postgres is expected to be already running externally as a container
+# named "postgres". It must be on the same Docker network.
 #
 # If they are on a custom network, uncomment the network section below
 # and set the network name.
@@ -29,6 +29,20 @@ services:
     depends_on:
       mailpit:
         condition: service_started
+      redis:
+        condition: service_started
+    networks:
+      - dokploy-network
+
+  redis:
+    container_name: notifier-redis
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
     networks:
       - dokploy-network
 
@@ -47,6 +61,9 @@ services:
       - ./client/.env
     networks:
       - dokploy-network
+
+volumes:
+  redis_data:
 
 networks:
   dokploy-network:

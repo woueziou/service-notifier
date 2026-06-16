@@ -6,7 +6,7 @@ NPM=npm
 all: dev
 
 # --- Server (runs natively on host) ---
-# Assumes postgres and redis are already running (e.g. in Docker) on localhost:5432 and localhost:6379.
+# Assumes postgres is already running externally (e.g. on localhost:5432) and redis is running (e.g. via docker compose on localhost:6379).
 
 server:
 	cd server && $(GO) run ./cmd/notifier
@@ -35,7 +35,7 @@ client-install:
 	cd client && $(NPM) install
 
 # --- Docker (runs everything in containers) ---
-# The compose file relies on external "postgres" and "redis" containers
+# The compose file relies on an external "postgres" container
 # on the same Docker network.
 
 docker-up:
@@ -53,17 +53,17 @@ docker-logs:
 # --- Development (native server + docker deps) ---
 
 dev:
-	@echo "Starting mailpit (SMTP test server)..."
-	docker compose up -d mailpit
+	@echo "Starting mailpit and redis containers..."
+	docker compose up -d mailpit redis
 	@echo ""
-	@echo "Make sure postgres and redis are already running."
-	@echo "  docker ps | grep -E 'postgres|redis'"
+	@echo "Make sure postgres is already running."
+	@echo "  docker ps | grep postgres"
 	@echo ""
 	@sleep 2
 	$(MAKE) server
 
 dev-docker:
-	@echo "Starting all containers (requires external postgres+redis network)..."
+	@echo "Starting all containers (requires external postgres network)..."
 	docker compose up -d --build
 
 # --- Database Migrations ---

@@ -40,8 +40,11 @@ func NewFuegoServer(db *gorm.DB, rdb *redis.Client, cfg *ConfigAdapter) *fuego.S
 	dispatchSvc := service.NewDispatchService(jobRepo, rdb, cfg.StreamName, cfg.DLQStream, cfg.MaxRetries, cfg.SenderDomain)
 	rateLimiter := service.NewRateLimiter(rdb)
 
-	// --- Fuego server ---
-	s := fuego.NewServer(fuego.WithAddr(fmt.Sprintf(":%d", cfg.Port)))
+	// --- Fuego server (global CORS middleware wrapped outside mux for preflight) ---
+	s := fuego.NewServer(
+		fuego.WithAddr(fmt.Sprintf(":%d", cfg.Port)),
+		fuego.WithGlobalMiddlewares(CORSMiddleware(cfg.CORSOrigin)),
+	)
 
 	// Replace default Stoplight Elements with Scalar API docs UI
 	s.OpenAPI.Config.UIHandler = func(specURL string) http.Handler {
@@ -51,11 +54,9 @@ func NewFuegoServer(db *gorm.DB, rdb *redis.Client, cfg *ConfigAdapter) *fuego.S
 		})
 	}
 
-	// --- Global middleware (applied to all routes, order matters) ---
-	// CORS must be early to handle OPTIONS preflight before other middleware.
+	// --- Route-level middleware (applied per-route, runs after method routing) ---
 	fuego.Use(s, RequestIDMiddleware)
 	fuego.Use(s, RealIPMiddleware)
-	fuego.Use(s, CORSMiddleware(cfg.CORSOrigin))
 	fuego.Use(s, LoggerMiddleware)
 	fuego.Use(s, RecoveryMiddleware)
 

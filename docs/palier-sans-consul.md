@@ -50,7 +50,7 @@ Reprendre le `.env` de production actuel (Dokploy de la 24), en changeant :
 | `DATABASE_URL` | `postgres://<rôle>:<MDP>@172.18.1.23:5432/notifier?sslmode=disable` |
 | `REDIS_URL` | `redis://default:<MDP encodé>@192.168.24.38:6379/<base dédiée>` |
 | `CORS_ORIGIN` | `https://notifier.flyasky.com` |
-| `SESSION_COOKIE_PATH` | `/notifier` |
+| `SESSION_COOKIE_PATH` | non définie (`/`) tant que l'UI de la 24 passe par `notifier-server.flyasky.com` ; `/notifier` quand elle passera par le gateway |
 | `HMAC_MASTER_KEY` | **valeur actuelle, à l'identique** (chiffre les secrets HMAC en base) |
 | `SMTP_*`, `WORKER_COUNT`, `MAX_RETRIES` | inchangés |
 | `REDIS_PASSWORD`, `CLIENT_PORT`, `VITE_API_URL` | inutiles ici |

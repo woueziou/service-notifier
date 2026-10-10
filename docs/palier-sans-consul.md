@@ -27,7 +27,7 @@ navigateur (notifier.flyasky.com) → https://backend.flyasky.com/notifier/auth/
   → même chemin ; cookie `session` limité à Path=/notifier
 ```
 
-- Au catalogue : `notifier`, `origin = manual`, `kind = external`, préfixe
+- Au catalogue : `notifier`, `origin = manual`, `kind = internal` (une cible `external` doit être publique), préfixe
   `/notifier`, `strip_prefix = true`, `strict_mode = false`, **sans import
   OpenAPI** (sinon des routes passeraient en `requireAuth` et le gateway
   renverrait 401 avant le notifier).

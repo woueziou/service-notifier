@@ -48,14 +48,34 @@ type AuthModule struct {
 	rdb       *redis.Client
 	smtp      *engine.SMTPEngine
 	fromEmail string
+	// cookiePath scopes the session cookie (e.g. "/notifier" behind the gateway,
+	// so it is not sent to the other services of the same domain).
+	cookiePath string
 }
 
-func NewAuthModule(adminRepo *repository.AdminUserRepo, rdb *redis.Client, smtp *engine.SMTPEngine, fromEmail string) *AuthModule {
+func NewAuthModule(adminRepo *repository.AdminUserRepo, rdb *redis.Client, smtp *engine.SMTPEngine, fromEmail, cookiePath string) *AuthModule {
+	if cookiePath == "" {
+		cookiePath = "/"
+	}
 	return &AuthModule{
-		adminRepo: adminRepo,
-		rdb:       rdb,
-		smtp:      smtp,
-		fromEmail: fromEmail,
+		adminRepo:  adminRepo,
+		rdb:        rdb,
+		smtp:       smtp,
+		fromEmail:  fromEmail,
+		cookiePath: cookiePath,
+	}
+}
+
+// sessionCookie builds the session cookie; set and cleared with the same path,
+// otherwise the browser keeps the old one on logout.
+func (m *AuthModule) sessionCookie(value string, maxAge int) *http.Cookie {
+	return &http.Cookie{
+		Name:     "session",
+		Value:    value,
+		Path:     m.cookiePath,
+		HttpOnly: true,
+		SameSite: http.SameSiteStrictMode,
+		MaxAge:   maxAge,
 	}
 }
 
@@ -187,14 +207,7 @@ func (m *AuthModule) verifyLogin(c fuego.ContextWithBody[verifyLoginBody]) (any,
 	}
 
 	// Set HTTP-only cookie
-	http.SetCookie(c.Response(), &http.Cookie{
-		Name:     "session",
-		Value:    sessionID,
-		Path:     "/",
-		HttpOnly: true,
-		SameSite: http.SameSiteStrictMode,
-		MaxAge:   int(defaultSessionTTL.Seconds()),
-	})
+	http.SetCookie(c.Response(), m.sessionCookie(sessionID, int(defaultSessionTTL.Seconds())))
 
 	return loginResponse{Email: user.Email}, nil
 }
@@ -205,14 +218,7 @@ func (m *AuthModule) logout(c fuego.ContextNoBody) (any, error) {
 		m.rdb.Del(c.Context(), sessionPrefix+cookie.Value)
 	}
 
-	http.SetCookie(c.Response(), &http.Cookie{
-		Name:     "session",
-		Value:    "",
-		Path:     "/",
-		HttpOnly: true,
-		SameSite: http.SameSiteStrictMode,
-		MaxAge:   -1,
-	})
+	http.SetCookie(c.Response(), m.sessionCookie("", -1))
 
 	return map[string]string{"status": "logged_out"}, nil
 }

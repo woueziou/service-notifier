@@ -1,0 +1,19 @@
+# Relais de transition sur 10.20.10.24 (E6 du plan de migration) : garde
+# l'ancienne adresse notifier-server.flyasky.com (Kemp -> 10.20.10.6:8055)
+# en service sans toucher au Kemp, le temps que chaque appelant passe a
+# https://backend.flyasky.com/notifier. A arreter quand ses journaux ne
+# montrent plus de trafic. A ne demarrer qu'apres l'arret de l'ancien
+# notifier-server (meme port 8055).
+services:
+  relay:
+    image: nginx:1.27-alpine
+    ports:
+      - "8055:8055"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    restart: unless-stopped
+
+networks:
+  default:
+    name: dokploy-network
+    external: true

@@ -105,6 +105,7 @@ func main() {
 		SMTPEngine:     smtpEngine,
 		SMTPFrom:       cfg.SMTPFrom,
 		CORSOrigin:     cfg.CORSOrigin,
+		CookiePath:     cfg.SessionCookiePath,
 		Port:           cfg.Port,
 	}
 

@@ -12,7 +12,7 @@ détaillé et fenêtre de bascule : `infra-core/docs/plans/notifier-migration.md
 | UI | `10.20.10.24` | `infra/notifier-ui` → `deploy/ui/docker-compose.yml` |
 | Relais de transition | `10.20.10.24`, port `8055` | `deploy/relay/docker-compose.yml` |
 | Base | `172.18.1.23/notifier` (copiée de `172.18.1.21/notifier`) | — |
-| File `email:jobs`, `email:dlq`, sessions admin | `infra-redis` de la 38, **base logique dédiée** | `REDIS_URL` |
+| File `email:jobs`, `email:dlq`, sessions admin | Redis de la 38, **base logique dédiée (8)** | `REDIS_URL` |
 
 L'ancien `docker-compose.prod.yml` (serveur + client + `notifier-redis` sur la
 24) ne sert plus qu'au retour arrière.

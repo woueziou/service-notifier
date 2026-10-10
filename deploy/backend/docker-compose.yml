@@ -1,0 +1,41 @@
+# Serveur notifier seul sur 192.168.24.38 (Dokploy 38, projet infra, compose
+# notifier), au palier sans Consul. Pas de Redis ici : la file email:jobs et les
+# sessions admin sont dans infra-redis de la 38 (REDIS_URL, base logique dediee).
+# Base : 172.18.1.23/notifier.
+#
+# Le gateway (10.20.10.24) le joint sur le port publie, prefixe /notifier retire
+# (strip_prefix). Le notifier authentifie lui-meme ses appelants (Bearer ou HMAC).
+#
+# Pas de container_name : conflit avec l'ancien conteneur notifier-server.
+# Dokploy ecrit les variables dans un .env a cote de ce fichier.
+# Voir docs/palier-sans-consul.md.
+services:
+  server:
+    build:
+      context: ../../server
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "${PORT:-8055}:${PORT:-8055}"
+    restart: unless-stopped
+    # Les workers finissent leurs envois en cours avant l'arret.
+    stop_grace_period: 30s
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:${PORT:-8055}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+# Reseau existant de Dokploy, jamais un reseau cree par compose (incident du
+# 2026-09-25 sur la 24 : un reseau en 172.18.0.0/16 a masque 172.18.1.23).
+networks:
+  default:
+    name: dokploy-network
+    external: true

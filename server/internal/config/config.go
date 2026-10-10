@@ -54,6 +54,10 @@ type Config struct {
 	// Set to "*" to allow all origins (not compatible with credentialed requests).
 	// Examples: "https://notifier.example.com" or "https://notifier.example.com,https://admin.example.com"
 	CORSOrigin string `env:"CORS_ORIGIN" envDefault:"*"`
+
+	// Session cookie path. Behind the gateway (https://backend.flyasky.com/notifier)
+	// set it to "/notifier" so the cookie is not sent to the other services.
+	SessionCookiePath string `env:"SESSION_COOKIE_PATH" envDefault:"/"`
 }
 
 func Load() (*Config, error) {

@@ -19,15 +19,8 @@ RUN bun run build
 # ---- Stage 2: Runner (Nginx) ----
 FROM nginx:alpine AS runner
 
-# Configure Nginx for SPA routing (TanStack Router)
-RUN echo 'server { \
-    listen 80; \
-    location / { \
-        root /usr/share/nginx/html; \
-        index index.html index.htm; \
-        try_files $uri $uri/ /index.html; \
-    } \
-}' > /etc/nginx/conf.d/default.conf
+# Configure Nginx for SPA routing (TanStack Router) and index.html caching
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copy static assets from builder
 COPY --from=builder /app/dist /usr/share/nginx/html

@@ -25,6 +25,7 @@ type ConfigAdapter struct {
 	SMTPEngine     *engine.SMTPEngine
 	SMTPFrom       string
 	CORSOrigin     string
+	CookiePath     string
 	Port           int
 }
 
@@ -96,7 +97,7 @@ func NewFuegoServer(db *gorm.DB, rdb *redis.Client, cfg *ConfigAdapter) *fuego.S
 	dispatchModule.Register(s, dispatchAuth...)
 
 	// Auth (email-based login with magic codes)
-	authModule := handler.NewAuthModule(repository.NewAdminUserRepo(db), rdb, cfg.SMTPEngine, cfg.SMTPFrom)
+	authModule := handler.NewAuthModule(repository.NewAdminUserRepo(db), rdb, cfg.SMTPEngine, cfg.SMTPFrom, cfg.CookiePath)
 	authModule.Register(s)
 
 	// Admin routes: session required, write operations require admin+
